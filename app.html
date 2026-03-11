@@ -1,0 +1,1755 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ChronoSaúde</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet"/>
+<style>
+/* ══════════════════════════════════════════════════════════
+   DESIGN TOKENS — DARK / LIGHT
+══════════════════════════════════════════════════════════ */
+:root{
+  --bg:#06090f; --surf:#0c1118; --card:#101820; --card2:#141f2a;
+  --border:#1a2535; --border2:#1f2e40;
+  --g1:#00e5b8; --g2:#0ea5e9; --warn:#f59e0b; --danger:#ef4444;
+  --purple:#a78bfa; --pink:#f472b6; --green:#22c55e;
+  --text:#dde8f5; --muted:#4d6680; --muted2:#2d4560;
+  --font-hd:'Syne',sans-serif; --font-ui:'Instrument Sans',sans-serif;
+  --font-mono:'DM Mono',monospace;
+  --shadow:0 4px 24px rgba(0,0,0,.4);
+  --shadow-lg:0 16px 64px rgba(0,0,0,.5);
+  --r:12px; --r-sm:8px;
+  --transition:.2s ease;
+}
+[data-theme="light"]{
+  --bg:#f0f5fb; --surf:#ffffff; --card:#ffffff; --card2:#f8fafc;
+  --border:#d1dce8; --border2:#c3d0e0;
+  --text:#1a2535; --muted:#6b7f96; --muted2:#a0b0c0;
+  --shadow:0 4px 24px rgba(0,0,0,.08);
+  --shadow-lg:0 16px 64px rgba(0,0,0,.12);
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font-ui);min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s}
+::-webkit-scrollbar{width:4px} ::-webkit-scrollbar-track{background:var(--bg)} ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+
+/* ── Animations ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes ring{0%{box-shadow:0 0 0 0 rgba(0,229,184,.5)}70%{box-shadow:0 0 0 14px transparent}100%{box-shadow:0 0 0 0 transparent}}
+@keyframes slideIn{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes hb{0%,100%{transform:scale(1)}14%{transform:scale(1.18)}28%{transform:scale(1)}42%{transform:scale(1.1)}70%{transform:scale(1)}}
+@keyframes wave{0%,100%{transform:scaleY(1)}50%{transform:scaleY(2)}}
+@keyframes glow{0%,100%{box-shadow:0 0 8px rgba(0,229,184,.4)}50%{box-shadow:0 0 24px rgba(0,229,184,.8)}}
+.fade-up{animation:fadeUp .4s ease both}
+.pulse-dot{animation:pulse 1.4s ease infinite}
+
+/* ══ LAYOUT ══════════════════════════════════════════════ */
+#app{display:flex;flex-direction:column;min-height:100vh}
+
+/* ── Header ── */
+header{
+  position:sticky;top:0;z-index:200;
+  background:rgba(6,9,15,.88);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;height:62px;gap:12px;
+  transition:background .3s,border .3s;
+}
+[data-theme="light"] header{background:rgba(240,245,251,.9)}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--g1),var(--g2));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;animation:ring 3s infinite;flex-shrink:0}
+.logo-text{font-family:var(--font-hd);font-weight:800;font-size:16px;letter-spacing:-.02em;color:var(--text)}
+.logo-sub{font-size:9px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase}
+
+/* Header actions */
+.header-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.icon-btn{
+  width:36px;height:36px;border-radius:9px;border:1px solid var(--border);
+  background:var(--card);display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:16px;transition:all var(--transition);flex-shrink:0;
+}
+.icon-btn:hover{border-color:var(--g1);transform:scale(1.05)}
+.icon-btn.active{background:rgba(0,229,184,.12);border-color:rgba(0,229,184,.4)}
+.clock-pill{font-family:var(--font-mono);font-size:12px;color:var(--g1);background:rgba(0,229,184,.08);padding:5px 11px;border-radius:7px;border:1px solid rgba(0,229,184,.18);letter-spacing:.04em;white-space:nowrap}
+.user-chip{display:flex;align-items:center;gap:7px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:4px 12px 4px 4px;cursor:pointer;transition:border var(--transition)}
+.user-chip:hover{border-color:var(--g1)}
+.user-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--g1),var(--g2));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#000;font-family:var(--font-hd)}
+.user-name{font-size:13px;font-weight:500;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Voice wave indicator */
+.voice-wave{display:flex;align-items:center;gap:2px;height:18px}
+.voice-wave span{width:3px;border-radius:3px;background:var(--g1);animation:wave .7s ease infinite}
+.voice-wave span:nth-child(2){animation-delay:.1s;height:10px}
+.voice-wave span:nth-child(3){animation-delay:.2s;height:16px}
+.voice-wave span:nth-child(4){animation-delay:.1s;height:10px}
+.voice-wave span:nth-child(1){height:6px}
+
+/* ── Patient bar ── */
+#patient-bar{
+  background:var(--surf);border-bottom:1px solid var(--border);
+  padding:8px 24px;display:flex;gap:24px;align-items:center;flex-wrap:wrap;
+  transition:background .3s;
+}
+.pinfo{display:flex;flex-direction:column;gap:1px}
+.pinfo-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.pinfo-val{font-size:12px;font-weight:500}
+.pinfo-val.hi{color:var(--g1);font-family:var(--font-mono)}
+.watch-pill{display:flex;align-items:center;gap:7px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:5px 12px;margin-left:auto;cursor:pointer;transition:all var(--transition)}
+.watch-pill:hover{border-color:var(--g1)}
+
+/* ── Nav ── */
+nav{background:var(--surf);border-bottom:1px solid var(--border);padding:0 24px;display:flex;gap:2px;overflow-x:auto;transition:background .3s}
+nav::-webkit-scrollbar{height:0}
+.tab-btn{background:none;border:none;font-family:var(--font-ui);font-size:13px;font-weight:500;color:var(--muted);padding:12px 15px;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all var(--transition);display:flex;align-items:center;gap:5px}
+.tab-btn.active{color:var(--g1);border-bottom-color:var(--g1)}
+.tab-btn:hover:not(.active){color:var(--text)}
+.tab-badge{background:var(--danger);color:#fff;border-radius:10px;font-size:9px;font-weight:700;padding:1px 5px;line-height:1.4}
+
+/* ── Main ── */
+main{flex:1;padding:20px 24px;max-width:1360px;width:100%;margin:0 auto}
+
+/* ══ COMPONENTS ═══════════════════════════════════════════ */
+
+/* Cards */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:18px;animation:fadeUp .35s ease both;transition:background .3s,border .3s,box-shadow .2s}
+.card:hover{box-shadow:var(--shadow)}
+.card-title{font-family:var(--font-hd);font-size:14px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:7px}
+
+/* Grids */
+.g4{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px}
+.g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.g2-fixed{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.flex-col{display:flex;flex-direction:column;gap:14px}
+
+/* Section headers */
+.sec{font-family:var(--font-hd);font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin:18px 0 10px;display:flex;align-items:center;gap:8px}
+.sec::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* Stat card */
+.stat{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:7px;animation:fadeUp .35s ease both;position:relative;overflow:hidden;transition:all var(--transition)}
+.stat::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--ac,transparent),transparent 60%);opacity:.07;pointer-events:none}
+.stat:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.stat-icon{font-size:22px}
+.stat-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.stat-val{font-family:var(--font-hd);font-size:28px;font-weight:800;line-height:1;color:var(--ac,var(--text))}
+.stat-sub{font-size:11px;color:var(--muted)}
+
+/* Vital card */
+.vital-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:15px;display:flex;flex-direction:column;gap:9px;animation:fadeUp .35s ease both;transition:all var(--transition)}
+.vital-card:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
+
+/* Badges */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.b-ok{background:rgba(0,229,184,.12);color:var(--g1);border:1px solid rgba(0,229,184,.2)}
+.b-warn{background:rgba(245,158,11,.12);color:var(--warn);border:1px solid rgba(245,158,11,.2)}
+.b-danger{background:rgba(239,68,68,.12);color:var(--danger);border:1px solid rgba(239,68,68,.2)}
+.b-blue{background:rgba(14,165,233,.12);color:var(--g2);border:1px solid rgba(14,165,233,.2)}
+.b-purple{background:rgba(167,139,250,.12);color:var(--purple);border:1px solid rgba(167,139,250,.2)}
+.b-green{background:rgba(34,197,94,.12);color:var(--green);border:1px solid rgba(34,197,94,.2)}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;border:none;cursor:pointer;border-radius:var(--r-sm);font-family:var(--font-ui);font-weight:500;transition:all var(--transition)}
+.btn-primary{background:linear-gradient(135deg,var(--g1),var(--g2));color:#000;padding:8px 16px;font-size:13px;font-weight:600}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px);box-shadow:0 6px 24px rgba(0,229,184,.3)}
+.btn-ghost{background:transparent;color:var(--muted);padding:7px 13px;font-size:12px;border:1px solid var(--border)}
+.btn-ghost:hover{border-color:var(--g1);color:var(--g1)}
+.btn-danger{background:rgba(239,68,68,.12);color:var(--danger);padding:6px 12px;font-size:12px;border:1px solid rgba(239,68,68,.25)}
+.btn-sm{padding:5px 11px;font-size:12px}
+
+/* Inputs */
+.fg{display:flex;flex-direction:column;gap:5px}
+.fg label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+input,select,textarea{background:var(--surf);border:1px solid var(--border2);color:var(--text);border-radius:var(--r-sm);padding:9px 12px;font-family:var(--font-ui);font-size:13px;outline:none;transition:all var(--transition);width:100%}
+input:focus,select:focus,textarea:focus{border-color:var(--g1);box-shadow:0 0 0 3px rgba(0,229,184,.1)}
+select option{background:var(--surf);color:var(--text)}
+
+/* Progress */
+.prog-wrap{background:var(--surf);border-radius:6px;height:7px;overflow:hidden}
+.prog-bar{height:100%;border-radius:6px;transition:width .6s cubic-bezier(.16,1,.3,1)}
+
+/* Table */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:8px 12px;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.05em;font-weight:600;border-bottom:1px solid var(--border)}
+td{padding:10px 12px;border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(0,229,184,.03)}
+
+/* Toast */
+#toast-wrap{position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;max-width:320px}
+.toast{pointer-events:all;display:flex;align-items:center;gap:10px;padding:11px 15px;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;animation:slideIn .3s ease;box-shadow:0 8px 32px rgba(0,0,0,.3);max-width:320px}
+.toast-ok{background:rgba(0,229,184,.95);color:#000}
+.toast-warn{background:rgba(245,158,11,.95);color:#000}
+.toast-danger{background:rgba(239,68,68,.95);color:#fff}
+.toast-info{background:rgba(14,165,233,.95);color:#fff}
+
+/* Med item */
+.med-item{display:flex;align-items:center;gap:12px;background:var(--surf);border-radius:10px;padding:11px 14px;border:1px solid var(--border);transition:all var(--transition)}
+.med-item:hover{border-color:var(--border2)}
+.med-item.taken{border-color:rgba(0,229,184,.3);background:rgba(0,229,184,.04)}
+.med-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.med-info{flex:1}
+.med-name{font-size:13px;font-weight:600}
+.med-detail{font-size:11px;color:var(--muted);margin-top:1px}
+
+/* Alert item */
+.alert-item{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border-radius:10px;border:1px solid var(--border);background:var(--surf);transition:all var(--transition)}
+.alert-item:hover{border-color:var(--border2)}
+
+/* Watch face */
+.watch-face{width:155px;height:175px;background:var(--card2);border-radius:30px;border:2px solid var(--border2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;position:relative;flex-shrink:0;box-shadow:0 0 30px rgba(0,229,184,.08),inset 0 0 30px rgba(0,0,0,.1)}
+.watch-face::before{content:'';position:absolute;top:-6px;width:38px;height:7px;background:var(--card2);border:2px solid var(--border2);border-radius:4px}
+.watch-hr{font-family:var(--font-hd);font-size:34px;font-weight:800;color:var(--g1);line-height:1;animation:hb 1.4s ease infinite}
+.watch-status{width:6px;height:6px;border-radius:50%;background:var(--g1);animation:pulse 1.2s infinite;position:absolute;top:13px;right:14px}
+
+/* Symptom */
+.symp-item{display:flex;align-items:center;gap:14px;padding:11px 14px;background:var(--surf);border-radius:10px;border:1px solid var(--border);transition:all var(--transition)}
+.symp-score{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:var(--font-hd);font-weight:800;font-size:15px;flex-shrink:0}
+
+/* Chart */
+.chart-wrap{position:relative;width:100%;height:130px}
+.chart-wrap canvas{position:absolute;inset:0;width:100%!important;height:100%!important}
+
+/* ── Water tracker ── */
+.water-cups{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.cup{width:38px;height:44px;border-radius:6px 6px 9px 9px;border:2px solid var(--border2);cursor:pointer;transition:all .15s;display:flex;align-items:flex-end;overflow:hidden;position:relative}
+.cup.filled{border-color:var(--g2)}
+.cup-water{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(180deg,rgba(14,165,233,.6),rgba(14,165,233,.9));transition:height .3s cubic-bezier(.16,1,.3,1)}
+.cup:hover{transform:scale(1.1)}
+.cup-icon{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:18px;z-index:1}
+
+/* ── Mood ── */
+.mood-grid{display:flex;gap:8px;flex-wrap:wrap}
+.mood-btn{width:48px;height:48px;border-radius:12px;border:2px solid var(--border);background:var(--surf);cursor:pointer;font-size:24px;transition:all .15s;display:flex;align-items:center;justify-content:center}
+.mood-btn:hover{transform:scale(1.12);border-color:var(--g1)}
+.mood-btn.selected{border-color:var(--g1);background:rgba(0,229,184,.1);animation:glow 1.5s ease infinite}
+
+/* ── BMI ── */
+.bmi-bar{height:16px;border-radius:8px;background:linear-gradient(90deg,var(--g2),var(--g1),var(--warn),var(--danger));position:relative;margin:10px 0}
+.bmi-arrow{position:absolute;top:-4px;transform:translateX(-50%);font-size:20px;transition:left .5s cubic-bezier(.16,1,.3,1)}
+
+/* ── Emergency ── */
+.emergency-btn{
+  width:100%;background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;
+  border:none;border-radius:12px;padding:16px;font-family:var(--font-hd);
+  font-size:16px;font-weight:700;cursor:pointer;display:flex;align-items:center;
+  justify-content:center;gap:10px;transition:all .2s;
+  box-shadow:0 4px 20px rgba(239,68,68,.3);
+}
+.emergency-btn:hover{opacity:.92;transform:translateY(-1px);box-shadow:0 8px 32px rgba(239,68,68,.5)}
+.emergency-btn:active{transform:scale(.98)}
+
+/* ── Stock pills ── */
+.stock-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.stock-item:last-child{border:none}
+
+/* ── Connect screen ── */
+.watch-connect{display:flex;flex-direction:column;align-items:center;gap:20px;padding:40px 20px;text-align:center}
+.watch-ring{width:110px;height:110px;border-radius:50%;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;position:relative;font-size:44px}
+.watch-ring::before{content:'';position:absolute;inset:-8px;border-radius:50%;border:2px solid var(--g1);border-top-color:transparent;animation:spin 1.4s linear infinite}
+
+/* Appointment */
+.appt-item{display:flex;align-items:center;gap:14px;padding:12px 14px;background:var(--surf);border-radius:10px;border:1px solid var(--border);transition:all var(--transition)}
+.appt-date{width:50px;height:50px;border-radius:10px;background:rgba(0,229,184,.1);border:1px solid rgba(0,229,184,.2);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
+.appt-day{font-family:var(--font-hd);font-size:20px;font-weight:800;color:var(--g1);line-height:1}
+.appt-month{font-size:9px;text-transform:uppercase;color:var(--muted);letter-spacing:.04em}
+
+/* ── Voice modal ── */
+#voice-modal{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+  background:var(--card);border:1px solid rgba(0,229,184,.3);
+  border-radius:16px;padding:14px 20px;z-index:300;
+  display:none;align-items:center;gap:14px;min-width:260px;
+  box-shadow:0 16px 48px rgba(0,0,0,.4);
+  animation:fadeUp .3s ease both;
+}
+#voice-modal.show{display:flex}
+.vm-wave{display:flex;align-items:center;gap:3px;height:24px}
+.vm-wave span{width:4px;border-radius:4px;background:var(--g1)}
+.vm-wave span:nth-child(1){height:8px;animation:wave .7s ease infinite}
+.vm-wave span:nth-child(2){height:18px;animation:wave .7s .1s ease infinite}
+.vm-wave span:nth-child(3){height:24px;animation:wave .7s .2s ease infinite}
+.vm-wave span:nth-child(4){height:18px;animation:wave .7s .1s ease infinite}
+.vm-wave span:nth-child(5){height:8px;animation:wave .7s ease infinite}
+
+/* Responsive */
+@media(max-width:640px){
+  main{padding:14px 16px}
+  header{padding:0 16px}
+  nav{padding:0 16px}
+  #patient-bar{padding:8px 16px;gap:14px}
+  .g2-fixed{grid-template-columns:1fr}
+  .logo-sub{display:none}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- TOAST -->
+<div id="toast-wrap"></div>
+
+<!-- VOICE MODAL -->
+<div id="voice-modal">
+  <div class="vm-wave">
+    <span></span><span></span><span></span><span></span><span></span>
+  </div>
+  <div style="flex:1">
+    <div style="font-size:11px;color:var(--muted);margin-bottom:2px">Thalita está falando...</div>
+    <div id="vm-text" style="font-size:13px;font-weight:500;color:var(--text)">...</div>
+  </div>
+  <button class="btn btn-ghost btn-sm" onclick="VOICE.stop()">✕</button>
+</div>
+
+<!-- ══ HEADER ══════════════════════════════════════════════════════════ -->
+<header>
+  <a class="logo" href="#">
+    <div class="logo-icon">🫀</div>
+    <div>
+      <div class="logo-text">ChronoSaúde</div>
+      <div class="logo-sub">Monitor Inteligente</div>
+    </div>
+  </a>
+
+  <div class="header-right">
+    <div class="clock-pill" id="clock">00:00:00</div>
+
+    <!-- Sound toggle -->
+    <button class="icon-btn active" id="sound-btn" title="Som (ativo)" onclick="toggleSound()">🔊</button>
+
+    <!-- Theme toggle -->
+    <button class="icon-btn" id="theme-btn" title="Alternar tema" onclick="toggleTheme()">🌙</button>
+
+    <!-- Voice schedule button -->
+    <button class="icon-btn" id="voice-btn" title="Ouvir cronograma" onclick="VOICE.readSchedule()">📢</button>
+
+    <!-- User chip -->
+    <div class="user-chip" onclick="logout()">
+      <div class="user-avatar" id="user-avatar">M</div>
+      <div class="user-name" id="user-name-chip">Usuário</div>
+    </div>
+  </div>
+</header>
+
+<!-- ══ PATIENT INFO BAR ════════════════════════════════════════════════ -->
+<div id="patient-bar">
+  <div class="pinfo"><div class="pinfo-label">Paciente</div><div class="pinfo-val" id="pbar-name">—</div></div>
+  <div class="pinfo"><div class="pinfo-label">Condição</div><div class="pinfo-val">Diabetes T2 + Hipertensão</div></div>
+  <div class="pinfo"><div class="pinfo-label">Médico</div><div class="pinfo-val">Dr. Carlos Mendes</div></div>
+  <div class="pinfo"><div class="pinfo-label">Adesão hoje</div><div class="pinfo-val hi" id="adh-val">0%</div></div>
+  <div class="pinfo"><div class="pinfo-label">Água hoje</div><div class="pinfo-val hi" id="water-val">0 / 8 copos</div></div>
+  <div class="watch-pill" id="watch-pill" onclick="handleWatchClick()">
+    <div id="wd" style="width:7px;height:7px;border-radius:50%;background:var(--muted2);flex-shrink:0"></div>
+    <span style="font-size:11px;color:var(--muted)" id="ws-lbl">⌚ Smartwatch desconectado</span>
+  </div>
+</div>
+
+<!-- ══ NAV ════════════════════════════════════════════════════════════ -->
+<nav id="nav"></nav>
+
+<!-- ══ MAIN ══════════════════════════════════════════════════════════ -->
+<main id="main"></main>
+
+</div><!-- #app -->
+
+<!-- ══════════════════════════════════════════════════════════════════
+     STATE & ENGINE
+══════════════════════════════════════════════════════════════════ -->
+<script>
+/* ── Auth guard ───────────────────────────────────────────────────── */
+const AUTH_USER = sessionStorage.getItem('cs-user');
+if(!AUTH_USER){ window.location.href = 'index.html'; }
+
+/* ── State ───────────────────────────────────────────────────────── */
+const S = {
+  view: 'patient',
+  tab: 'dashboard',
+  soundOn: true,
+  watchConnected: false,
+  watchConnecting: false,
+  now: new Date(),
+  user: AUTH_USER || 'Usuário',
+
+  watch: {
+    hr:78, hrv:42, spo2:97, steps:3240, calories:210,
+    bp_sys:138, bp_dia:88, temp:36.7,
+    hrHistory:[], spo2History:[], bpHistory:[], lastSync:null
+  },
+  vitals: {
+    glucose:{value:142, history:mkHist(142,20), unit:'mg/dL', icon:'🩸', label:'Glicose', color:'#f59e0b'}
+  },
+  meds: [
+    {id:1,name:'Metformina',  dose:'850mg',times:['07:00','19:00'],color:'#00e5b8',taken:{},stock:58},
+    {id:2,name:'Losartana',   dose:'50mg', times:['08:00'],        color:'#0ea5e9',taken:{},stock:28},
+    {id:3,name:'Sinvastatina',dose:'20mg', times:['22:00'],        color:'#a78bfa',taken:{},stock:14},
+    {id:4,name:'AAS',         dose:'100mg',times:['07:00'],        color:'#f59e0b',taken:{},stock:45},
+  ],
+  symptoms:[],
+  alerts:[],
+  notes:'',
+  doctorRx:'',
+  waterCups:0,
+  mood:null,
+  weight:72,
+  height:165,
+  appointments:[
+    {id:1,title:'Endocrinologista',doctor:'Dra. Ana Lima',date:'18',month:'Mar',time:'09:30',local:'Clínica Saúde+'},
+    {id:2,title:'Cardiologista',doctor:'Dr. Carlos Mendes',date:'05',month:'Abr',time:'14:00',local:'Hospital Santa Cruz'},
+    {id:3,title:'Nutricionista',doctor:'Dra. Paula Souza',date:'12',month:'Abr',time:'11:00',local:'Centro Nutri'},
+  ],
+  emergencyContacts:[
+    {name:'Dr. Carlos Mendes',role:'Médico',phone:'(11) 99999-1234'},
+    {name:'João Santos',role:'Familiar',phone:'(11) 98888-5678'},
+    {name:'SAMU',role:'Emergência',phone:'192'},
+  ],
+  medAlertedToday:{},
+};
+
+// pre-fill watch history
+S.watch.hrHistory   = mkHist(78,8,60);
+S.watch.spo2History = mkHist(97,1.2,60);
+S.watch.bpHistory   = mkHist(138,10,60);
+
+function mkHist(base,v,n=10){return Array.from({length:n},()=>+(base+(Math.random()-.5)*v*2).toFixed(1));}
+
+/* ── Theme ───────────────────────────────────────────────────────── */
+const savedTheme = localStorage.getItem('cs-theme')||'dark';
+document.documentElement.dataset.theme = savedTheme;
+document.getElementById('theme-btn').textContent = savedTheme==='dark'?'🌙':'☀️';
+function toggleTheme(){
+  const cur = document.documentElement.dataset.theme;
+  const nxt = cur==='dark'?'light':'dark';
+  document.documentElement.dataset.theme = nxt;
+  localStorage.setItem('cs-theme',nxt);
+  document.getElementById('theme-btn').textContent = nxt==='dark'?'🌙':'☀️';
+}
+
+/* ── Sound toggle ────────────────────────────────────────────────── */
+function toggleSound(){
+  S.soundOn = !S.soundOn;
+  const btn = document.getElementById('sound-btn');
+  btn.textContent = S.soundOn ? '🔊' : '🔇';
+  btn.title = S.soundOn ? 'Som (ativo)' : 'Som (desativado)';
+  btn.classList.toggle('active', S.soundOn);
+  toast(S.soundOn ? '🔊 Som ativado' : '🔇 Som desativado', 'info');
+}
+
+/* ══ VOICE ENGINE (Thalita) ══════════════════════════════════════ */
+const VOICE = (() => {
+  let synth = window.speechSynthesis;
+  let thalita = null;
+  let speaking = false;
+
+  function loadVoices(){
+    const voices = synth.getVoices();
+    // Priority: Thalita → Microsoft Maria → any pt-BR → first
+    thalita = voices.find(v=>v.name.toLowerCase().includes('thalita'))
+           || voices.find(v=>v.name.toLowerCase().includes('maria') && v.lang.startsWith('pt'))
+           || voices.find(v=>v.lang==='pt-BR')
+           || voices.find(v=>v.lang.startsWith('pt'))
+           || voices[0];
+  }
+
+  if(synth.onvoiceschanged !== undefined){ synth.onvoiceschanged = loadVoices; }
+  loadVoices();
+  setTimeout(loadVoices, 500);
+
+  function speak(text, cb){
+    if(!S.soundOn){ if(cb)cb(); return; }
+    synth.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    if(thalita) u.voice = thalita;
+    u.lang = 'pt-BR';
+    u.rate = 0.95;
+    u.pitch = 1.05;
+    u.volume = 1;
+    u.onstart = ()=>{
+      speaking = true;
+      showModal(text);
+    };
+    u.onend = u.onerror = ()=>{
+      speaking = false;
+      hideModal();
+      if(cb)cb();
+    };
+    synth.speak(u);
+  }
+
+  function stop(){
+    synth.cancel();
+    speaking = false;
+    hideModal();
+  }
+
+  function showModal(text){
+    const m = document.getElementById('voice-modal');
+    document.getElementById('vm-text').textContent = text;
+    m.classList.add('show');
+  }
+  function hideModal(){
+    document.getElementById('voice-modal').classList.remove('show');
+  }
+
+  function greet(){
+    const h = new Date().getHours();
+    const g = h<12?'Bom dia':h<18?'Boa tarde':'Boa noite';
+    const name = S.user.split(' ')[0];
+    const adh = medAdherence();
+    const meds = nextMeds(2);
+    let msg = `${g}, ${name}! Bem-vinda ao ChronoSaúde. `;
+    msg += `Sua adesão ao tratamento hoje está em ${adh} por cento. `;
+    if(meds.length>0){
+      msg += `Você tem ${meds.length === 1 ? 'um medicamento' : meds.length + ' medicamentos'} programados para hoje. `;
+      msg += `O próximo é ${meds[0].name}, ${meds[0].dose}, às ${meds[0].time}. `;
+    }
+    msg += `Cuide-se bem!`;
+    speak(msg);
+  }
+
+  function readSchedule(){
+    const today = S.now.toDateString();
+    const meds = S.meds.flatMap(m=>m.times.map(t=>({...m,time:t,taken:!!m.taken[`${today}-${t}`]})))
+                       .sort((a,b)=>a.time.localeCompare(b.time));
+    if(meds.length===0){ speak('Você não tem medicamentos programados para hoje.'); return; }
+    let msg = 'Seu cronograma de medicamentos para hoje: ';
+    meds.forEach(m=>{
+      msg += `${m.name}, ${m.dose}, às ${m.time.replace(':',' horas e ')}, ${m.taken?'já tomado.':'ainda não tomado.'} `;
+    });
+    speak(msg);
+  }
+
+  function alertMed(medName, dose, time){
+    speak(`Atenção! Está na hora de tomar ${medName}, ${dose}. Horário: ${time.replace(':',' horas e ')}.`);
+  }
+
+  function alertVital(label, value, unit, level){
+    const l = level==='danger'?'crítico':'de atenção';
+    speak(`Alerta ${l}! ${label} está em ${value} ${unit}. Por favor, verifique com seu médico.`);
+  }
+
+  function readAlerts(){
+    const unread = S.alerts.filter(a=>!a.read);
+    if(unread.length===0){ speak('Você não tem alertas pendentes no momento.'); return; }
+    speak(`Você tem ${unread.length} ${unread.length===1?'alerta':'alertas'} não lido${unread.length===1?'':'s'}. ${unread[0].title}. ${unread[0].desc}`);
+  }
+
+  return { greet, speak, stop, readSchedule, alertMed, alertVital, readAlerts };
+})();
+
+/* ── Audio alarm (Web Audio API) ─────────────────────────────────── */
+function playAlarmBeep(type='med'){
+  if(!S.soundOn) return;
+  try{
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    const freqs = type==='danger'?[880,660,880]:type==='warn'?[660,550]:type==='med'?[523,659,784]:[440];
+    let t = ctx.currentTime;
+    freqs.forEach((f,i)=>{
+      const osc = ctx.createOscillator();
+      const gain= ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.frequency.setValueAtTime(f,t+i*0.12);
+      gain.gain.setValueAtTime(0,t+i*0.12);
+      gain.gain.linearRampToValueAtTime(0.3,t+i*0.12+0.02);
+      gain.gain.linearRampToValueAtTime(0,t+i*0.12+0.18);
+      osc.start(t+i*0.12); osc.stop(t+i*0.12+0.2);
+    });
+  }catch(e){}
+}
+
+/* ── Tab config ──────────────────────────────────────────────────── */
+const TABS = {
+  patient:[
+    {id:'dashboard',  label:'Dashboard',   icon:'📊'},
+    {id:'watch',      label:'Smartwatch',  icon:'⌚'},
+    {id:'vitals',     label:'Sinais Vitais',icon:'🩺'},
+    {id:'meds',       label:'Medicamentos',icon:'💊'},
+    {id:'symptoms',   label:'Sintomas',    icon:'📝'},
+    {id:'wellness',   label:'Bem-Estar',   icon:'🌿'},
+    {id:'appointments',label:'Consultas', icon:'📅'},
+  ],
+  doctor:[
+    {id:'overview',   label:'Visão Geral', icon:'🔬'},
+    {id:'trends',     label:'Tendências',  icon:'📈'},
+    {id:'alerts_doc', label:'Alertas',     icon:'🚨'},
+    {id:'rx',         label:'Prescrições', icon:'📋'},
+    {id:'emergency',  label:'Emergência',  icon:'🆘'},
+  ]
+};
+
+/* ── Helpers ─────────────────────────────────────────────────────── */
+function medAdherence(){
+  const today=S.now.toDateString(); let total=0,taken=0;
+  S.meds.forEach(m=>{m.times.forEach(t=>{total++;if(m.taken[`${today}-${t}`])taken++;});});
+  return total===0?0:Math.round((taken/total)*100);
+}
+function nextMeds(n=4){
+  const today=S.now.toDateString();
+  return S.meds.flatMap(m=>m.times.map(t=>({...m,time:t,taken:!!m.taken[`${today}-${t}`]}))).sort((a,b)=>a.time.localeCompare(b.time)).slice(0,n);
+}
+function vStatus(key,val){
+  if(key==='hr')     return val<60||val>100?(val<50||val>120?'danger':'warn'):'ok';
+  if(key==='spo2')   return val<94?'danger':val<96?'warn':'ok';
+  if(key==='bp')     return val>160?'danger':val>140?'warn':'ok';
+  if(key==='temp')   return val>38.5?'danger':val>37.5?'warn':'ok';
+  if(key==='glucose')return val>200?'danger':val>140?'warn':'ok';
+  return 'ok';
+}
+function vsCls(k,v){const s=vStatus(k,v);return s==='ok'?'b-ok':s==='warn'?'b-warn':'b-danger';}
+function vsLbl(k,v){const s=vStatus(k,v);return s==='ok'?'Normal':s==='warn'?'Atenção':'Crítico';}
+function bmi(){return (S.weight/(S.height/100)**2).toFixed(1);}
+function bmiLabel(b){return b<18.5?'Abaixo do peso':b<25?'Normal':b<30?'Sobrepeso':b<35?'Obesidade I':b<40?'Obesidade II':'Obesidade III';}
+function bmiClass(b){return b<18.5?'b-warn':b<25?'b-ok':b<30?'b-warn':'b-danger';}
+function nowStr(){const d=new Date();return`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;}
+function fmtSync(){if(!S.watch.lastSync)return'nunca';const s=Math.round((Date.now()-S.watch.lastSync)/1e3);return s<60?`há ${s}s`:`há ${Math.round(s/60)}min`;}
+function clamp(v,lo,hi){return Math.max(lo,Math.min(hi,v));}
+function rnd(lo,hi){return lo+Math.random()*(hi-lo);}
+function setText(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
+function glcLbl(v){return v>200?'Hiperglicemia':v>140?'Elevada':v<70?'Hipoglicemia':'Normal';}
+function glcCls(v){return v>200?'b-danger':v>140?'b-warn':v<70?'b-danger':'b-ok';}
+
+/* ── Toast ───────────────────────────────────────────────────────── */
+function toast(msg,type='ok'){
+  const el=document.createElement('div');
+  el.className=`toast toast-${type}`;
+  el.innerHTML=`<span>${type==='danger'?'🚨':type==='warn'?'⚠️':type==='info'?'ℹ️':'✓'}</span>${msg}`;
+  el.onclick=()=>el.remove();
+  document.getElementById('toast-wrap').appendChild(el);
+  setTimeout(()=>{el.style.transition='opacity .3s';el.style.opacity='0';setTimeout(()=>el.remove(),300);},5000);
+}
+
+function addAlert(title,desc,type='info'){
+  S.alerts.unshift({title,desc,type,time:new Date().toLocaleTimeString('pt-BR'),read:false,id:Date.now()});
+  renderBadges();
+}
+
+/* ── Render engine ───────────────────────────────────────────────── */
+function render(){
+  renderNav();
+  renderMain();
+  renderBars();
+}
+function renderBars(){
+  setText('adh-val', medAdherence()+'%');
+  setText('water-val', `${S.waterCups} / 8 copos`);
+  setText('pbar-name', S.user);
+  // User chip
+  document.getElementById('user-avatar').textContent = S.user.charAt(0).toUpperCase();
+  document.getElementById('user-name-chip').textContent = S.user.split(' ')[0];
+  // Watch pill
+  const wd = document.getElementById('wd');
+  const ws = document.getElementById('ws-lbl');
+  if(S.watchConnecting){wd.style.background='var(--warn)';wd.style.animation='pulse .6s infinite';ws.textContent='⌚ conectando...';}
+  else if(S.watchConnected){wd.style.background='var(--g1)';wd.style.animation='pulse 1.2s infinite';ws.textContent='⌚ Apple Watch • ao vivo';}
+  else{wd.style.background='var(--muted2)';wd.style.animation='none';ws.textContent='⌚ Smartwatch desconectado';}
+}
+function renderBadges(){
+  const unread = S.alerts.filter(a=>!a.read).length;
+  document.querySelectorAll('.alert-badge').forEach(b=>{
+    b.textContent=unread;b.style.display=unread?'inline':'none';
+  });
+}
+function renderNav(){
+  const tabs = TABS[S.view];
+  const unread = S.alerts.filter(a=>!a.read).length;
+  document.getElementById('nav').innerHTML = [
+    ...tabs.map(t=>`<button class="tab-btn${S.tab===t.id?' active':''}" onclick="setTab('${t.id}')">${t.icon} ${t.label}${(t.id==='alerts_doc'&&unread)?`<span class="tab-badge alert-badge">${unread}</span>`:''}</button>`),
+    `<button class="tab-btn${S.view==='doctor'?' active':''}" style="margin-left:auto" onclick="setView('${S.view==='patient'?'doctor':'patient'}')">${S.view==='patient'?'👨‍⚕️ Visão Médico':'👤 Visão Paciente'}</button>`
+  ].join('');
+}
+function renderMain(){
+  const pages = {
+    dashboard,watch:pageWatch,vitals:pageVitals,meds:pageMeds,symptoms:pageSymptoms,
+    wellness:pageWellness,appointments:pageAppointments,
+    overview:pageOverview,trends:pageTrends,alerts_doc:pageAlerts,rx:pageRx,emergency:pageEmergency
+  };
+  document.getElementById('main').innerHTML = (pages[S.tab]||pageDashboard)();
+  afterRender();
+}
+function afterRender(){
+  document.querySelectorAll('[data-chart]').forEach(c=>{
+    try{const cfg=JSON.parse(c.dataset.chart);drawChart(c,cfg.data,cfg.color,cfg.fill!==false);}catch(e){}
+  });
+}
+function setView(v){
+  S.view=v;S.tab=TABS[v][0].id;render();
+}
+function setTab(t){
+  S.tab=t;render();
+}
+function logout(){
+  if(confirm('Sair do ChronoSaúde?')){
+    sessionStorage.clear();window.location.href='index.html';
+  }
+}
+function handleWatchClick(){
+  if(S.watchConnecting)return;
+  if(S.watchConnected)disconnectWatch();
+  else{setTab('watch');}
+}
+
+/* ════════════════════════════════════════════════════════════
+   PAGES
+════════════════════════════════════════════════════════════ */
+
+/* ── DASHBOARD ──────────────────────────────────────────────────── */
+function dashboard(){
+  const w=S.watch; const adh=medAdherence(); const b=parseFloat(bmi());
+  const nm=nextMeds(4); const unread=S.alerts.filter(a=>!a.read).length;
+  return`<div class="flex-col">
+
+  ${S.watchConnected?`
+  <div class="card" style="background:linear-gradient(135deg,rgba(0,229,184,.05),rgba(14,165,233,.03));border-color:rgba(0,229,184,.2);display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+    <div class="watch-face">
+      <div class="watch-status"></div>
+      <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">BPM</div>
+      <div class="watch-hr" id="wf-hr">${w.hr}</div>
+      <div style="display:flex;gap:14px;margin-top:4px">
+        <div style="text-align:center"><div style="font-family:var(--font-mono);font-size:12px" id="wf-spo2">${w.spo2}%</div><div style="font-size:8px;color:var(--muted)">SpO₂</div></div>
+        <div style="text-align:center"><div style="font-family:var(--font-mono);font-size:12px" id="wf-steps">${w.steps.toLocaleString('pt-BR')}</div><div style="font-size:8px;color:var(--muted)">Passos</div></div>
+      </div>
+    </div>
+    <div style="flex:1;min-width:200px">
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px"><div class="pulse-dot" style="width:7px;height:7px;border-radius:50%;background:var(--g1)"></div><span style="font-family:var(--font-hd);font-size:13px;font-weight:700;color:var(--g1)">Apple Watch • AO VIVO</span></div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Última sync: <span id="sync-lbl">${fmtSync()}</span></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px">
+        ${lm('❤️','FC',w.hr,'bpm','hr')}${lm('🫁','SpO₂',w.spo2,'%','spo2')}${lm('🩺','Pressão',`${w.bp_sys}/${w.bp_dia}`,'mmHg','bp')}${lm('🌡️','Temp',w.temp,'°C','temp')}
+      </div>
+    </div>
+  </div>` : `
+  <div class="card" style="display:flex;align-items:center;gap:14px;border-style:dashed">
+    <span style="font-size:32px">⌚</span>
+    <div style="flex:1"><div style="font-weight:600;margin-bottom:3px">Conecte seu Smartwatch</div><div style="font-size:12px;color:var(--muted)">Monitoramento contínuo de FC, SpO₂ e pressão arterial em tempo real.</div></div>
+    <button class="btn btn-primary" onclick="setTab('watch')">Conectar</button>
+  </div>`}
+
+  <div class="sec">resumo do dia</div>
+  <div class="g4">
+    <div class="stat" style="--ac:var(--g1)"><div class="stat-icon">💊</div><div class="stat-label">Adesão medicamentos</div><div class="stat-val">${adh}%</div><div class="prog-wrap" style="margin-top:4px"><div class="prog-bar" style="width:${adh}%;background:linear-gradient(90deg,var(--g1),var(--g2))"></div></div></div>
+    <div class="stat" style="--ac:#f59e0b"><div class="stat-icon">🩸</div><div class="stat-label">Glicose (última)</div><div class="stat-val">${S.vitals.glucose.value}</div><div class="stat-sub">${S.vitals.glucose.unit} · <span class="${glcCls(S.vitals.glucose.value)}" style="display:inline;font-size:10px;font-weight:600">${glcLbl(S.vitals.glucose.value)}</span></div></div>
+    <div class="stat" style="--ac:var(--g2)"><div class="stat-icon">💧</div><div class="stat-label">Água consumida</div><div class="stat-val">${S.waterCups}<span style="font-size:14px;color:var(--muted)">/8</span></div><div class="prog-wrap" style="margin-top:4px"><div class="prog-bar" style="width:${(S.waterCups/8)*100}%;background:linear-gradient(90deg,var(--g2),var(--purple))"></div></div></div>
+    <div class="stat" style="--ac:${unread>0?'var(--danger)':'var(--green)'}"><div class="stat-icon">${unread>0?'⚠️':'✅'}</div><div class="stat-label">Alertas ativos</div><div class="stat-val">${unread}</div><div class="stat-sub">${unread===0?'Tudo normal':'não lidos'}</div></div>
+  </div>
+
+  ${S.watchConnected?`
+  <div class="sec">sinais vitais ao vivo</div>
+  <div class="g2">
+    <div class="card"><div class="card-title">❤️ Freq. Cardíaca <span class="${vsCls('hr',w.hr)} badge" style="margin-left:auto">${vsLbl('hr',w.hr)}</span></div><div class="chart-wrap"><canvas data-chart='${JSON.stringify({data:w.hrHistory,color:"#ef4444",fill:true})}'></canvas></div></div>
+    <div class="card"><div class="card-title">🫁 Saturação O₂ <span class="${vsCls('spo2',w.spo2)} badge" style="margin-left:auto">${vsLbl('spo2',w.spo2)}</span></div><div class="chart-wrap"><canvas data-chart='${JSON.stringify({data:w.spo2History,color:"#00e5b8",fill:true})}'></canvas></div></div>
+  </div>`:''}
+
+  <div class="sec">próximas doses</div>
+  <div class="g3">
+    ${nm.map(m=>`<div class="med-item${m.taken?' taken':''}">
+      <div class="med-dot" style="background:${m.color}"></div>
+      <div class="med-info"><div class="med-name">${m.name}</div><div class="med-detail">${m.dose} · ${m.time}</div></div>
+      ${m.taken?`<span class="badge b-ok">✓ Tomado</span>`:`<button class="btn btn-primary btn-sm" onclick="takeMed(${m.id},'${m.time}')">Tomar</button>`}
+    </div>`).join('')}
+  </div>
+
+  ${S.appointments.length?`
+  <div class="sec">próximas consultas</div>
+  <div class="g3">
+    ${S.appointments.slice(0,3).map(a=>`<div class="appt-item">
+      <div class="appt-date"><div class="appt-day">${a.date}</div><div class="appt-month">${a.month}</div></div>
+      <div style="flex:1"><div style="font-weight:600;font-size:13px">${a.title}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">${a.doctor} · ${a.time}</div><div style="font-size:11px;color:var(--muted)">${a.local}</div></div>
+    </div>`).join('')}
+  </div>`:''}
+
+  </div>`;
+}
+
+function lm(icon,label,val,unit,key){
+  const s=vStatus(key,val);
+  return`<div style="background:var(--surf);border-radius:8px;padding:8px 10px;border:1px solid var(--border)">
+    <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px">${icon} ${label}</div>
+    <div style="font-family:var(--font-hd);font-size:14px;font-weight:700">${val} <span style="font-size:9px;color:var(--muted);font-family:var(--font-ui)">${unit}</span></div>
+    <span class="badge ${s==='ok'?'b-ok':s==='warn'?'b-warn':'b-danger'}" style="margin-top:2px;font-size:9px">${s==='ok'?'Normal':s==='warn'?'Atenção':'Crítico'}</span>
+  </div>`;
+}
+
+/* ── SMARTWATCH ────────────────────────────────────────────────── */
+function pageWatch(){
+  const w=S.watch;
+  if(!S.watchConnected&&!S.watchConnecting) return`
+  <div class="card" style="max-width:480px;margin:0 auto">
+    <div class="watch-connect">
+      <div class="watch-ring">⌚</div>
+      <div><div style="font-family:var(--font-hd);font-size:20px;font-weight:700;margin-bottom:6px">Conectar Smartwatch</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.7">Conecte seu dispositivo para monitoramento contínuo e automático de sinais vitais em tempo real.</div></div>
+      <div style="display:flex;flex-direction:column;gap:10px;width:100%">
+        <button class="btn btn-primary" style="justify-content:center;padding:13px" onclick="connectWatch()">📶 Apple Watch (HealthKit)</button>
+        <button class="btn btn-ghost" style="justify-content:center" onclick="connectWatch()">🤖 Android / Wear OS</button>
+        <button class="btn btn-ghost" style="justify-content:center" onclick="connectWatch()">⌚ Garmin / Fitbit</button>
+      </div>
+      <div style="font-size:11px;color:var(--muted2);text-align:center">Bluetooth LE · Criptografia AES-256 · Dados protegidos por LGPD</div>
+    </div>
+  </div>`;
+
+  if(S.watchConnecting) return`
+  <div class="card" style="max-width:480px;margin:0 auto">
+    <div class="watch-connect">
+      <div class="watch-ring">⌚</div>
+      <div><div style="font-family:var(--font-hd);font-size:18px;font-weight:700;margin-bottom:6px">Conectando...</div>
+      <div style="font-size:13px;color:var(--muted)">Emparelhando com Apple Watch de ${S.user.split(' ')[0]}</div></div>
+      <div style="display:flex;flex-direction:column;gap:8px;width:100%;font-size:12px;color:var(--muted)">
+        <div style="display:flex;align-items:center;gap:8px" id="cs1"><span id="cs1i">⏳</span> Procurando dispositivos Bluetooth...</div>
+        <div style="display:flex;align-items:center;gap:8px;opacity:.3" id="cs2"><span id="cs2i">⏳</span> Autenticando via HealthKit...</div>
+        <div style="display:flex;align-items:center;gap:8px;opacity:.3" id="cs3"><span id="cs3i">⏳</span> Iniciando stream de dados...</div>
+      </div>
+    </div>
+  </div>`;
+
+  return`<div class="flex-col">
+  <div class="card" style="background:linear-gradient(135deg,rgba(0,229,184,.04),rgba(14,165,233,.03));border-color:rgba(0,229,184,.2)">
+    <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+      <div class="watch-face">
+        <div class="watch-status"></div>
+        <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">BPM</div>
+        <div class="watch-hr" id="wf-hr2">${w.hr}</div>
+        <div style="display:flex;gap:14px;margin-top:4px">
+          <div style="text-align:center"><div style="font-family:var(--font-mono);font-size:12px" id="wf-spo2b">${w.spo2}%</div><div style="font-size:8px;color:var(--muted)">SpO₂</div></div>
+          <div style="text-align:center"><div style="font-family:var(--font-mono);font-size:12px" id="wf-hrv2">${w.hrv}ms</div><div style="font-size:8px;color:var(--muted)">HRV</div></div>
+        </div>
+      </div>
+      <div style="flex:1;min-width:180px">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px"><div class="pulse-dot" style="width:7px;height:7px;border-radius:50%;background:var(--g1)"></div><span style="font-family:var(--font-hd);font-size:13px;font-weight:700;color:var(--g1)">AO VIVO — Apple Watch Series 9</span></div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:14px">Sync: <span id="sync2">${fmtSync()}</span> · 🔋 78%</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px">
+          ${lm('❤️','FC',w.hr,'bpm','hr')}${lm('🫁','SpO₂',w.spo2,'%','spo2')}${lm('🩺','Pressão',`${w.bp_sys}/${w.bp_dia}`,'mmHg','bp')}${lm('⚡','HRV',w.hrv,'ms','ok')}${lm('🌡️','Temp',w.temp,'°C','temp')}${lm('🏃','Passos',w.steps.toLocaleString('pt-BR'),'','ok')}
+        </div>
+      </div>
+      <button class="btn btn-danger btn-sm" onclick="disconnectWatch()">Desconectar</button>
+    </div>
+  </div>
+  <div class="sec">monitoramento em tempo real</div>
+  <div class="g2">
+    <div class="card"><div class="card-title">❤️ Frequência Cardíaca — 60min</div><div class="chart-wrap" style="height:150px"><canvas data-chart='${JSON.stringify({data:w.hrHistory,color:"#ef4444",fill:true})}'></canvas></div><div style="display:flex;justify-content:space-between;margin-top:8px;font-size:11px;color:var(--muted)"><span>Mín: <b style="color:var(--text)">${Math.min(...w.hrHistory)}</b></span><span>Média: <b style="color:var(--text)">${Math.round(w.hrHistory.reduce((a,b)=>a+b,0)/w.hrHistory.length)}</b></span><span>Máx: <b style="color:var(--text)">${Math.max(...w.hrHistory)}</b></span></div></div>
+    <div class="card"><div class="card-title">🫁 Saturação O₂ — 60min</div><div class="chart-wrap" style="height:150px"><canvas data-chart='${JSON.stringify({data:w.spo2History,color:"#00e5b8",fill:true})}'></canvas></div><div style="display:flex;justify-content:space-between;margin-top:8px;font-size:11px;color:var(--muted)"><span>Mín: <b style="color:var(--text)">${Math.min(...w.spo2History)}%</b></span><span>Média: <b style="color:var(--text)">${(w.spo2History.reduce((a,b)=>a+b,0)/w.spo2History.length).toFixed(1)}%</b></span><span>Máx: <b style="color:var(--text)">${Math.max(...w.spo2History)}%</b></span></div></div>
+    <div class="card"><div class="card-title">🩺 Pressão Sistólica — 60min</div><div class="chart-wrap" style="height:150px"><canvas data-chart='${JSON.stringify({data:w.bpHistory,color:"#0ea5e9",fill:true})}'></canvas></div></div>
+    <div class="card">
+      <div class="card-title">⚡ HRV — Variabilidade da FC</div>
+      <div style="font-family:var(--font-hd);font-size:32px;font-weight:800;color:var(--purple);margin:8px 0" id="hrv-val">${w.hrv} <span style="font-size:14px;color:var(--muted);font-family:var(--font-ui)">ms</span></div>
+      <span class="badge ${w.hrv>=40?'b-ok':w.hrv>=30?'b-warn':'b-danger'}">${w.hrv>=40?'Boa recuperação':w.hrv>=30?'Regular':'Baixa — verifique'}</span>
+      <div class="prog-wrap" style="margin-top:12px"><div class="prog-bar" style="width:${Math.min(100,(w.hrv/80)*100)}%;background:linear-gradient(90deg,var(--purple),var(--g2))"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted2);margin-top:4px"><span>0ms</span><span>40ms</span><span>80ms</span></div>
+      <div style="font-size:12px;color:var(--muted);margin-top:10px;line-height:1.6">HRV alto indica boa recuperação e baixo estresse cardiovascular.</div>
+    </div>
+  </div>
+  <div class="sec">sono de ontem</div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div><div class="card-title" style="margin:0">😴 Qualidade do Sono</div><div style="font-size:12px;color:var(--muted);margin-top:2px">22:30 → 06:15 · 7h45min total</div></div>
+      <span class="badge b-ok">Boa noite</span>
+    </div>
+    <div style="display:flex;gap:1px;height:32px;border-radius:8px;overflow:hidden;margin-bottom:10px">
+      <div style="flex:2;background:rgba(167,139,250,.25)"></div><div style="flex:8;background:rgba(14,165,233,.35)"></div>
+      <div style="flex:14;background:rgba(0,229,184,.4)"></div><div style="flex:10;background:rgba(244,114,182,.4)"></div>
+      <div style="flex:12;background:rgba(0,229,184,.4)"></div><div style="flex:8;background:rgba(244,114,182,.4)"></div><div style="flex:3;background:rgba(167,139,250,.2)"></div>
+    </div>
+    <div style="display:flex;gap:18px;flex-wrap:wrap;font-size:12px">
+      <span>🟢 Profundo: <b>2h10min</b></span><span>🔵 Leve: <b>3h40min</b></span><span>🟣 REM: <b>1h55min</b></span><span>⚪ Acordado: <b>0h15min</b></span>
+    </div>
+  </div>
+  </div>`;
+}
+
+/* ── VITALS ─────────────────────────────────────────────────────── */
+function pageVitals(){
+  const g=S.vitals.glucose;
+  return`<div class="flex-col">
+  <div class="card" style="max-width:500px">
+    <div class="card-title">🩸 Registrar Glicose</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="fg"><label>Valor (mg/dL)</label><input type="number" id="inp-gluc" placeholder="${g.value}" min="40" max="600"/></div>
+      <div class="fg"><label>Horário</label><input type="time" id="inp-gtime" value="${nowStr()}"/></div>
+      <div class="fg" style="grid-column:1/-1"><label>Contexto</label>
+        <select id="inp-gctx"><option>Em jejum</option><option>Pós-refeição (2h)</option><option>Antes do almoço</option><option>Antes de dormir</option><option>Após exercício</option></select>
+      </div>
+    </div>
+    <button class="btn btn-primary" style="margin-top:14px" onclick="addGlucose()">＋ Registrar Leitura</button>
+  </div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div class="card-title" style="margin:0">📈 Histórico de Glicose</div>
+      <div style="display:flex;align-items:center;gap:8px"><span style="font-family:var(--font-hd);font-size:22px;font-weight:800;color:#f59e0b">${g.value}</span><span style="font-size:12px;color:var(--muted)">mg/dL</span><span class="badge ${glcCls(g.value)}">${glcLbl(g.value)}</span></div>
+    </div>
+    <div class="chart-wrap" style="height:160px"><canvas data-chart='${JSON.stringify({data:g.history,color:"#f59e0b",fill:true})}'></canvas></div>
+    <div style="display:flex;gap:14px;margin-top:10px;font-size:11px;color:var(--muted);flex-wrap:wrap">
+      <span>Média: <b style="color:var(--text)">${Math.round(g.history.reduce((a,b)=>a+b,0)/g.history.length)} mg/dL</b></span>
+      <span>Mín: <b style="color:var(--text)">${Math.min(...g.history)}</b></span>
+      <span>Máx: <b style="color:var(--text)">${Math.max(...g.history)}</b></span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">📊 Valores de Referência</div>
+    <table>
+      <thead><tr><th>Sinal</th><th>Normal ✅</th><th>Atenção ⚠️</th><th>Crítico 🚨</th></tr></thead>
+      <tbody>
+        <tr><td>❤️ FC</td><td><span class="badge b-ok">60–100 bpm</span></td><td><span class="badge b-warn">50–60 / 100–120</span></td><td><span class="badge b-danger">&lt;50 ou &gt;120</span></td></tr>
+        <tr><td>🩺 Pressão</td><td><span class="badge b-ok">&lt;130 mmHg</span></td><td><span class="badge b-warn">130–160</span></td><td><span class="badge b-danger">&gt;160</span></td></tr>
+        <tr><td>🩸 Glicose</td><td><span class="badge b-ok">70–140 mg/dL</span></td><td><span class="badge b-warn">140–200</span></td><td><span class="badge b-danger">&gt;200</span></td></tr>
+        <tr><td>🫁 SpO₂</td><td><span class="badge b-ok">≥ 96%</span></td><td><span class="badge b-warn">94–96%</span></td><td><span class="badge b-danger">&lt;94%</span></td></tr>
+        <tr><td>🌡️ Temperatura</td><td><span class="badge b-ok">36–37.5°C</span></td><td><span class="badge b-warn">37.5–38.5</span></td><td><span class="badge b-danger">&gt;38.5</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  </div>`;
+}
+
+/* ── MEDS ───────────────────────────────────────────────────────── */
+function pageMeds(){
+  const today=S.now.toDateString(); const adh=medAdherence();
+  return`<div class="flex-col">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div class="card-title" style="margin:0">Adesão ao Tratamento — Hoje</div>
+      <span style="font-family:var(--font-hd);font-size:26px;font-weight:800;color:var(--g1)">${adh}%</span>
+    </div>
+    <div class="prog-wrap" style="height:10px"><div class="prog-bar" style="width:${adh}%;background:linear-gradient(90deg,var(--g1),var(--g2))"></div></div>
+    <div style="margin-top:8px;font-size:11px;color:var(--muted)">${S.meds.flatMap(m=>m.times).length} doses programadas hoje</div>
+  </div>
+  <div class="g2">
+    ${S.meds.map(med=>{
+      const done=med.times.filter(t=>med.taken[`${today}-${t}`]).length;
+      const daysLeft=Math.floor(med.stock/med.times.length);
+      const stockWarn=daysLeft<=7;
+      return`<div class="card" style="border-left:3px solid ${med.color}">
+        <div style="display:flex;justify-content:space-between;margin-bottom:12px">
+          <div><div style="font-family:var(--font-hd);font-size:15px;font-weight:700">${med.name}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">${med.dose} · ${done}/${med.times.length} hoje</div></div>
+          <span style="font-size:26px">💊</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px">
+          ${med.times.map(t=>{const k=`${today}-${t}`;const tk=med.taken[k];return`<div class="med-item${tk?' taken':''}">
+            <div class="med-dot" style="background:${med.color}"></div>
+            <div class="med-info"><div class="med-name" style="font-family:var(--font-mono);font-size:13px">🕐 ${t}</div></div>
+            ${tk?`<span class="badge b-ok">✓ Tomado</span>`:`<button class="btn btn-primary btn-sm" onclick="takeMed(${med.id},'${t}')">Marcar tomado</button>`}
+          </div>`;}).join('')}
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid var(--border)">
+          <div style="font-size:11px;color:var(--muted)">Estoque: <b style="color:${stockWarn?'var(--danger)':'var(--text)'}">${med.stock} comprimidos</b></div>
+          <span class="badge ${daysLeft<=3?'b-danger':daysLeft<=7?'b-warn':'b-ok'}">${daysLeft}d restantes</span>
+        </div>
+      </div>`;}).join('')}
+  </div>
+  </div>`;
+}
+
+/* ── SYMPTOMS ───────────────────────────────────────────────────── */
+function pageSymptoms(){
+  return`<div class="flex-col">
+  <div class="card" style="max-width:540px">
+    <div class="card-title">📝 Registrar Sintoma</div>
+    <div style="display:grid;gap:12px">
+      <div class="fg"><label>Descrição</label><input id="symp-desc" placeholder="Ex: dor de cabeça, tontura, náusea..."/></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="fg"><label>Intensidade (1–10)</label><select id="symp-sev">${Array.from({length:10},(_,i)=>`<option value="${i+1}">${i+1} — ${i<3?'Leve':i<6?'Moderado':'Intenso'}</option>`).join('')}</select></div>
+        <div class="fg"><label>Horário</label><input type="time" id="symp-time" value="${nowStr()}"/></div>
+      </div>
+      <div class="fg"><label>Local do corpo (opcional)</label><select id="symp-body"><option value="">Não especificado</option><option>Cabeça</option><option>Peito</option><option>Abdômen</option><option>Costas</option><option>Membros inferiores</option><option>Membros superiores</option><option>Geral</option></select></div>
+    </div>
+    <button class="btn btn-primary" style="margin-top:14px" onclick="addSymptom()">＋ Registrar</button>
+  </div>
+  ${S.symptoms.length===0?`<div class="card" style="text-align:center;color:var(--muted);padding:40px">Nenhum sintoma registrado ainda.</div>`:`<div class="flex-col">
+    ${S.symptoms.map(s=>{const sv=parseInt(s.severity);const col=sv<=3?'var(--g1)':sv<=6?'var(--warn)':'var(--danger)';
+    return`<div class="symp-item">
+      <div class="symp-score" style="background:${col}22;color:${col}">${s.severity}</div>
+      <div style="flex:1"><div style="font-weight:600">${s.desc}</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px">${s.date} às ${s.time}${s.body?' · '+s.body:''}</div></div>
+      <span class="badge ${sv<=3?'b-ok':sv<=6?'b-warn':'b-danger'}">${sv<=3?'Leve':sv<=6?'Moderado':'Intenso'}</span>
+    </div>`}).join('')}
+  </div>`}
+  </div>`;
+}
+
+/* ── WELLNESS ───────────────────────────────────────────────────── */
+function pageWellness(){
+  const b=parseFloat(bmi()); const bmiPos=Math.min(95,Math.max(3,b<18.5?((b-14)/4.5)*20:b<25?20+((b-18.5)/6.5)*25:b<30?45+((b-25)/5)*25:b<35?70+((b-30)/5)*15:85));
+  return`<div class="flex-col">
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">💧 Ingestão de Água</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Meta: 8 copos por dia (2 litros)</div>
+      <div class="water-cups" id="water-cups-wrap">
+        ${Array.from({length:8},(_,i)=>`<div class="cup${i<S.waterCups?' filled':''}" onclick="setCups(${i+1})">
+          <div class="cup-water" style="height:${i<S.waterCups?'80%':'0'}"></div>
+          <div class="cup-icon">${i<S.waterCups?'💧':'⬜'}</div>
+        </div>`).join('')}
+      </div>
+      <div style="font-family:var(--font-hd);font-size:24px;font-weight:800;color:var(--g2);margin:8px 0">${S.waterCups}<span style="font-size:14px;color:var(--muted);font-family:var(--font-ui)">/8 copos (${S.waterCups*250}ml)</span></div>
+      <div class="prog-wrap"><div class="prog-bar" style="width:${(S.waterCups/8)*100}%;background:linear-gradient(90deg,var(--g2),var(--purple))"></div></div>
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+        <button class="btn btn-primary btn-sm" onclick="setCups(Math.min(8,S.waterCups+1));render()">+ 1 copo</button>
+        <button class="btn btn-ghost btn-sm" onclick="setCups(Math.max(0,S.waterCups-1));render()">- 1 copo</button>
+        <button class="btn btn-ghost btn-sm" onclick="setCups(0);render()">Resetar</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">😊 Como você está se sentindo?</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Registre seu humor hoje</div>
+      <div class="mood-grid">
+        ${[['😄','Ótimo'],['😊','Bem'],['😐','Regular'],['😔','Mal'],['😢','Muito mal'],['😰','Ansioso'],['😠','Irritado'],['🤒','Doente']].map(([e,l])=>`<div class="mood-btn${S.mood===l?' selected':''}" title="${l}" onclick="setMood('${l}')">${e}</div>`).join('')}
+      </div>
+      ${S.mood?`<div style="margin-top:12px;font-size:13px;color:var(--text)">Humor registrado: <b>${S.mood}</b></div>`:''}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">⚖️ IMC — Índice de Massa Corporal</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+      <div class="fg"><label>Peso (kg)</label><input type="number" id="inp-weight" value="${S.weight}" min="30" max="250" step="0.1" oninput="S.weight=parseFloat(this.value)||72;document.getElementById('bmi-result').textContent=bmi();"/></div>
+      <div class="fg"><label>Altura (cm)</label><input type="number" id="inp-height" value="${S.height}" min="100" max="250" step="1" oninput="S.height=parseFloat(this.value)||165;document.getElementById('bmi-result').textContent=bmi();"/></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
+      <div style="font-family:var(--font-hd);font-size:36px;font-weight:800;color:var(--g1)" id="bmi-result">${b}</div>
+      <span class="badge ${bmiClass(b)}">${bmiLabel(b)}</span>
+    </div>
+    <div class="bmi-bar">
+      <div class="bmi-arrow" style="left:${bmiPos}%">▲</div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:2px">
+      <span>Abaixo</span><span>Normal</span><span>Sobrepeso</span><span>Obesidade</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">💊 Estoque de Medicamentos</div>
+    ${S.meds.map(m=>{const days=Math.floor(m.stock/m.times.length);return`<div class="stock-item">
+      <div class="med-dot" style="background:${m.color}"></div>
+      <div style="flex:1"><div style="font-size:13px;font-weight:600">${m.name} ${m.dose}</div><div style="font-size:11px;color:var(--muted)">${m.stock} comprimidos restantes</div></div>
+      <div class="prog-wrap" style="width:80px"><div class="prog-bar" style="width:${Math.min(100,(days/30)*100)}%;background:${days<=3?'var(--danger)':days<=7?'var(--warn)':'var(--g1)'}"></div></div>
+      <span class="badge ${days<=3?'b-danger':days<=7?'b-warn':'b-ok'}" style="margin-left:8px">${days}d</span>
+    </div>`;}).join('')}
+    <div style="margin-top:12px;font-size:12px;color:var(--muted)">⚠️ Sinvastatina com estoque baixo (${Math.floor(S.meds[2].stock/S.meds[2].times.length)} dias). Solicite renovação da receita.</div>
+  </div>
+
+  </div>`;
+}
+
+/* ── APPOINTMENTS ───────────────────────────────────────────────── */
+function pageAppointments(){
+  return`<div class="flex-col">
+  <div class="card" style="max-width:520px">
+    <div class="card-title">📅 Agendar Consulta</div>
+    <div style="display:grid;gap:12px">
+      <div class="fg"><label>Especialidade</label><input id="appt-title" placeholder="Ex: Cardiologista"/></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="fg"><label>Médico</label><input id="appt-doc" placeholder="Dr. Nome"/></div>
+        <div class="fg"><label>Local</label><input id="appt-local" placeholder="Clínica/Hospital"/></div>
+        <div class="fg"><label>Dia</label><input type="number" id="appt-day" min="1" max="31" placeholder="DD"/></div>
+        <div class="fg"><label>Mês abrev.</label><input id="appt-month" placeholder="Mar"/></div>
+        <div class="fg"><label>Horário</label><input type="time" id="appt-time" value="09:00"/></div>
+      </div>
+    </div>
+    <button class="btn btn-primary" style="margin-top:14px" onclick="addAppointment()">＋ Adicionar Consulta</button>
+  </div>
+  <div class="flex-col">
+    ${S.appointments.map(a=>`<div class="appt-item">
+      <div class="appt-date"><div class="appt-day">${a.date}</div><div class="appt-month">${a.month}</div></div>
+      <div style="flex:1"><div style="font-weight:600;font-size:14px">${a.title}</div><div style="font-size:12px;color:var(--muted);margin-top:2px">${a.doctor}</div><div style="font-size:11px;color:var(--muted)">${a.local} · ${a.time}</div></div>
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+        <button class="btn btn-ghost btn-sm" onclick="VOICE.speak('Consulta com ${a.doctor.replace(/'/g,'')} no dia ${a.date} de ${a.month} às ${a.time.replace(':',' horas e ')} na ${a.local.replace(/'/g,'')}')">📢</button>
+        <button class="btn btn-danger btn-sm" onclick="removeAppointment(${a.id})">✕</button>
+      </div>
+    </div>`).join('')}
+  </div>
+  </div>`;
+}
+
+/* ══════════════════════════════════════════════════════════
+   DOCTOR PAGES  — visão clínica completa
+══════════════════════════════════════════════════════════ */
+
+/* helper — SVG sparkline inline (sem canvas) */
+function sparkSVG(data, color, w=120, h=36){
+  if(!data||data.length<2) return '';
+  const mn=Math.min(...data), mx=Math.max(...data), rng=mx-mn||1;
+  const pts=data.map((v,i)=>`${(i/(data.length-1))*w},${h-((v-mn)/rng)*(h-4)-2}`).join(' ');
+  const area=`M0,${h} L${pts.split(' ').join(' L')} L${w},${h} Z`;
+  const id=`sg${Math.random().toString(36).slice(2,7)}`;
+  return`<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="overflow:visible;flex-shrink:0">
+    <defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${color}" stop-opacity=".3"/>
+      <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
+    </linearGradient></defs>
+    <path d="${area}" fill="url(#${id})"/>
+    <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="${(data.length-1)/(data.length-1)*w}" cy="${h-((data[data.length-1]-mn)/rng)*(h-4)-2}" r="3" fill="${color}"/>
+  </svg>`;
+}
+
+/* helper — full VitalCard com sparkline SVG, trend arrow, badge */
+function docVitalCard(icon, label, value, unit, hist, color, vkey){
+  const st = vStatus(vkey, typeof value==='number'?value:hist[hist.length-1]);
+  const cls = st==='ok'?'b-ok':st==='warn'?'b-warn':'b-danger';
+  const lbl = st==='ok'?'Normal':st==='warn'?'Atenção':'Crítico';
+  const prev = hist.length>=2 ? hist[hist.length-2] : hist[0];
+  const curr = hist[hist.length-1];
+  const delta = +(curr-prev).toFixed(1);
+  const arrow = delta>0?`<span style="color:var(--danger);font-size:12px">↑${delta}</span>`
+               :delta<0?`<span style="color:var(--g1);font-size:12px">↓${Math.abs(delta)}</span>`
+               :`<span style="color:var(--muted);font-size:12px">→</span>`;
+  return`<div class="vital-card" style="gap:10px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div><div style="font-size:20px">${icon}</div>
+      <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-top:3px">${label}</div></div>
+      <span class="badge ${cls}">${lbl}</span>
+    </div>
+    <div style="display:flex;align-items:flex-end;gap:6px">
+      <span style="font-family:var(--font-hd);font-size:26px;font-weight:800;color:${color};line-height:1">${value}</span>
+      <span style="font-size:11px;color:var(--muted);margin-bottom:3px">${unit}</span>
+      ${arrow}
+    </div>
+    ${sparkSVG(hist, color, 120, 36)}
+  </div>`;
+}
+
+/* helper — efficacy row com sparkline */
+function efficacyRow(icon, label, hist, unit, vkey, avail){
+  if(!avail||!hist||hist.length<4)
+    return`<div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--border);opacity:.35">
+      <span style="font-size:20px;width:28px;text-align:center">${icon}</span>
+      <span style="font-size:13px;font-weight:500;width:160px;flex-shrink:0">${label}</span>
+      <span style="font-size:11px;color:var(--muted)">Dados insuficientes — conecte o smartwatch</span>
+    </div>`;
+  const first3 = hist.slice(0,3).reduce((a,b)=>a+b,0)/3;
+  const last3  = hist.slice(-3).reduce((a,b)=>a+b,0)/3;
+  const delta  = +(last3-first3).toFixed(1);
+  const st     = vStatus(vkey, hist[hist.length-1]);
+  const imp    = (vkey==='hr'||vkey==='bp'||vkey==='glucose')? delta<0 : delta>0;
+  const barPct = Math.min(96, Math.max(8, Math.abs(delta/(first3||1))*200+50));
+  const barCol = imp?'linear-gradient(90deg,var(--g1),var(--g2))':'linear-gradient(90deg,var(--warn),var(--danger))';
+  const dCol   = imp?'var(--g1)':'var(--warn)';
+  const stCls  = st==='ok'?'b-ok':st==='warn'?'b-warn':'b-danger';
+  const stLbl  = st==='ok'?'Bom':st==='warn'?'Atenção':'Crítico';
+  return`<div style="display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--border)">
+    <span style="font-size:20px;width:28px;text-align:center">${icon}</span>
+    <span style="font-size:13px;font-weight:600;width:160px;flex-shrink:0">${label}</span>
+    <div style="flex:1;min-width:60px">
+      <div class="prog-wrap" style="height:8px"><div class="prog-bar" style="width:${barPct}%;background:${barCol}"></div></div>
+    </div>
+    <span class="badge ${stCls}" style="width:70px;text-align:center;justify-content:center">${stLbl}</span>
+    <span style="font-family:var(--font-mono);font-size:12px;width:72px;text-align:right;color:${dCol}">${delta>0?'+':''}${delta} ${unit}</span>
+    ${sparkSVG(hist, imp?'#00e5b8':'#f59e0b', 100, 30)}
+  </div>`;
+}
+
+/* ── VISÃO GERAL (médico) ──────────────────────────────────── */
+function pageOverview(){
+  const w=S.watch; const adh=medAdherence();
+  const critCount=[
+    vStatus('hr',w.hr), vStatus('spo2',w.spo2), vStatus('bp',w.bp_sys),
+    vStatus('glucose',S.vitals.glucose.value)
+  ].filter(s=>s==='danger').length;
+  const warnCount=[
+    vStatus('hr',w.hr), vStatus('spo2',w.spo2), vStatus('bp',w.bp_sys),
+    vStatus('glucose',S.vitals.glucose.value)
+  ].filter(s=>s==='warn').length;
+
+  return`<div class="flex-col">
+
+  <!-- KPIs do médico -->
+  <div class="g4">
+    <div class="stat" style="--ac:var(--g1)">
+      <div class="stat-icon">💊</div>
+      <div class="stat-label">Adesão — Hoje</div>
+      <div class="stat-val">${adh}%</div>
+      <div class="prog-wrap" style="margin-top:6px"><div class="prog-bar" style="width:${adh}%;background:linear-gradient(90deg,var(--g1),var(--g2))"></div></div>
+    </div>
+    <div class="stat" style="--ac:${critCount>0?'var(--danger)':'var(--green)'}">
+      <div class="stat-icon">${critCount>0?'🚨':'✅'}</div>
+      <div class="stat-label">Sinais Críticos</div>
+      <div class="stat-val">${critCount}</div>
+      <div style="font-size:11px;color:var(--muted)">${warnCount} em atenção</div>
+    </div>
+    <div class="stat" style="--ac:var(--g2)">
+      <div class="stat-icon">📝</div>
+      <div class="stat-label">Sintomas Relatados</div>
+      <div class="stat-val">${S.symptoms.length}</div>
+      <div style="font-size:11px;color:var(--muted)">${S.symptoms.filter(s=>parseInt(s.severity)>=7).length} intensos</div>
+    </div>
+    <div class="stat" style="--ac:var(--purple)">
+      <div class="stat-icon">⌚</div>
+      <div class="stat-label">Smartwatch</div>
+      <div class="stat-val" style="font-size:16px;font-weight:700">${S.watchConnected?'AO VIVO':'Offline'}</div>
+      <div style="font-size:11px;color:var(--muted)">${S.watchConnected?'Sync: '+fmtSync():'Desconectado'}</div>
+    </div>
+  </div>
+
+  <!-- Sinais vitais com sparklines -->
+  <div class="sec">status clínico dos sinais vitais</div>
+  <div class="g4">
+    ${S.watchConnected
+      ? docVitalCard('❤️','Freq. Cardíaca', w.hr,  'bpm',   w.hrHistory,   '#ef4444','hr')
+      + docVitalCard('🫁','Saturação O₂',   w.spo2, '%',     w.spo2History, '#00e5b8','spo2')
+      + docVitalCard('🩺','Pressão Sistólica',w.bp_sys,'mmHg',w.bpHistory,  '#0ea5e9','bp')
+      + docVitalCard('⚡','HRV',             w.hrv, 'ms',    w.hrHistory.map((v,i)=>+(v*0.4+i*0.1).toFixed(1)),'#a78bfa','ok')
+      : `<div class="card" style="grid-column:1/-1;text-align:center;color:var(--muted);padding:28px;border-style:dashed">
+          <div style="font-size:28px;margin-bottom:8px">⌚</div>
+          Conecte o smartwatch para ver FC, SpO₂ e Pressão em tempo real
+          <br><button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="setView('patient');setTab('watch')">Conectar agora</button>
+        </div>`
+    }
+    ${docVitalCard('🩸','Glicose', S.vitals.glucose.value, 'mg/dL', S.vitals.glucose.history, '#f59e0b','glucose')}
+    ${S.watchConnected?docVitalCard('🌡️','Temperatura', w.temp, '°C', w.hrHistory.map(()=>+(w.temp+(Math.random()-.5)*.2).toFixed(1)), '#f472b6','temp'):''}
+  </div>
+
+  <!-- Sintomas recentes -->
+  ${S.symptoms.length ? `
+  <div class="sec">sintomas reportados pelo paciente</div>
+  <div class="flex-col">
+    ${S.symptoms.slice(0,5).map(s=>{
+      const sv=parseInt(s.severity);
+      const col=sv<=3?'var(--g1)':sv<=6?'var(--warn)':'var(--danger)';
+      return`<div class="alert-item">
+        <div style="width:36px;height:36px;border-radius:9px;background:${col}1a;border:1px solid ${col}44;display:flex;align-items:center;justify-content:center;font-family:var(--font-hd);font-weight:800;font-size:15px;color:${col};flex-shrink:0">${sv}</div>
+        <div style="flex:1">
+          <div style="font-weight:600;font-size:13px">${s.desc}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">${s.date} às ${s.time}${s.body?' · '+s.body:''}</div>
+        </div>
+        <span class="badge ${sv<=3?'b-ok':sv<=6?'b-warn':'b-danger'}">${sv<=3?'Leve':sv<=6?'Moderado':'Intenso'}</span>
+      </div>`;}).join('')}
+  </div>` : ''}
+
+  <!-- Alertas recentes -->
+  ${S.alerts.length ? `
+  <div class="sec">alertas clínicos recentes</div>
+  <div class="flex-col">
+    ${S.alerts.slice(0,4).map((a,i)=>`<div class="alert-item" style="border-color:${a.type==='danger'?'rgba(239,68,68,.25)':a.type==='warn'?'rgba(245,158,11,.2)':'var(--border)'}">
+      <div style="font-size:18px">${a.type==='danger'?'🚨':a.type==='warn'?'⚠️':'ℹ️'}</div>
+      <div style="flex:1"><div style="font-weight:600;font-size:13px">${a.title}</div><div style="font-size:11px;color:var(--muted);margin-top:1px">${a.desc}</div></div>
+      <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
+        <span class="badge ${a.type==='danger'?'b-danger':a.type==='warn'?'b-warn':'b-blue'}">${a.type==='danger'?'Crítico':a.type==='warn'?'Atenção':'Info'}</span>
+        <span style="font-size:10px;color:var(--muted2)">${a.time}</span>
+      </div>
+    </div>`).join('')}
+    ${S.alerts.length>4?`<button class="btn btn-ghost btn-sm" style="align-self:flex-start" onclick="setTab('alerts_doc')">Ver todos (${S.alerts.length})</button>`:''}
+  </div>` : ''}
+
+  </div>`;
+}
+
+/* ── TENDÊNCIAS E EFICÁCIA (médico) ────────────────────────── */
+function pageTrends(){
+  const w=S.watch; const today=S.now.toDateString();
+
+  // Build all vitals dataset
+  const allVitals=[
+    {icon:'❤️', label:'Freq. Cardíaca',    unit:'bpm',   hist:w.hrHistory,             key:'hr',      avail:S.watchConnected},
+    {icon:'🩺', label:'Pressão Sistólica', unit:'mmHg',  hist:w.bpHistory,             key:'bp',      avail:S.watchConnected},
+    {icon:'🫁', label:'Saturação O₂',      unit:'%',     hist:w.spo2History,           key:'spo2',    avail:S.watchConnected},
+    {icon:'⚡', label:'HRV',               unit:'ms',    hist:w.hrHistory.map((v,i)=>clamp(v*.4+i*.08+20,20,80)), key:'ok', avail:S.watchConnected},
+    {icon:'🩸', label:'Glicose',           unit:'mg/dL', hist:S.vitals.glucose.history, key:'glucose', avail:true},
+    {icon:'🌡️', label:'Temperatura',       unit:'°C',    hist:Array.from({length:10},()=>+(w.temp+(Math.random()-.5)*.3).toFixed(1)), key:'temp', avail:S.watchConnected},
+  ];
+
+  // Med adherence history (simulated 7-day)
+  const adhWeek=[62,75,88,70,94,80,medAdherence()];
+  const adhLabels=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+
+  return`<div class="flex-col">
+
+  <!-- Eficácia geral header -->
+  <div class="card" style="border-color:rgba(0,229,184,.15);background:linear-gradient(135deg,rgba(0,229,184,.03),rgba(14,165,233,.02))">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:16px">
+      <div>
+        <div class="card-title" style="margin:0;font-size:16px">📊 Avaliação de Eficácia do Tratamento</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px">Comparação: média dos 3 primeiros vs 3 últimos registros · ${allVitals.filter(v=>v.avail).length} sinais disponíveis</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="VOICE.speak('Relatório de eficácia gerado para ${S.user.split(' ')[0]}. Adesão em ${medAdherence()} por cento.')">📢 Narrar resumo</button>
+    </div>
+    <div style="display:flex;flex-direction:column">
+      ${allVitals.map(v=>efficacyRow(v.icon,v.label,v.hist,v.unit,v.key,v.avail)).join('')}
+    </div>
+  </div>
+
+  <!-- Gráficos de tendência detalhados -->
+  ${S.watchConnected?`
+  <div class="sec">evolução temporal — gráficos detalhados</div>
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">❤️ FC — últimos 60 registros</div>
+      <div style="display:flex;gap:16px;margin-bottom:10px;font-size:11px;flex-wrap:wrap">
+        <span>Média: <b style="color:var(--text)">${Math.round(w.hrHistory.reduce((a,b)=>a+b,0)/w.hrHistory.length)} bpm</b></span>
+        <span>Mín: <b style="color:var(--g1)">${Math.min(...w.hrHistory)}</b></span>
+        <span>Máx: <b style="color:var(--danger)">${Math.max(...w.hrHistory)}</b></span>
+      </div>
+      <div class="chart-wrap"><canvas data-chart='${JSON.stringify({data:w.hrHistory,color:"#ef4444",fill:true})}'></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">🩺 Pressão Sistólica — 60 registros</div>
+      <div style="display:flex;gap:16px;margin-bottom:10px;font-size:11px;flex-wrap:wrap">
+        <span>Média: <b style="color:var(--text)">${Math.round(w.bpHistory.reduce((a,b)=>a+b,0)/w.bpHistory.length)} mmHg</b></span>
+        <span class="badge ${vStatus('bp',w.bp_sys)==='ok'?'b-ok':vStatus('bp',w.bp_sys)==='warn'?'b-warn':'b-danger'}">Meta: &lt; 130</span>
+      </div>
+      <div class="chart-wrap"><canvas data-chart='${JSON.stringify({data:w.bpHistory,color:"#0ea5e9",fill:true})}'></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">🫁 SpO₂ — saturação de oxigênio</div>
+      <div style="display:flex;gap:16px;margin-bottom:10px;font-size:11px;flex-wrap:wrap">
+        <span>Média: <b style="color:var(--text)">${(w.spo2History.reduce((a,b)=>a+b,0)/w.spo2History.length).toFixed(1)}%</b></span>
+        <span class="badge ${vStatus('spo2',w.spo2)==='ok'?'b-ok':'b-danger'}">Meta: ≥ 96%</span>
+      </div>
+      <div class="chart-wrap"><canvas data-chart='${JSON.stringify({data:w.spo2History,color:"#00e5b8",fill:true})}'></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">🩸 Glicose — histórico de leituras</div>
+      <div style="display:flex;gap:16px;margin-bottom:10px;font-size:11px;flex-wrap:wrap">
+        <span>Média: <b style="color:var(--text)">${Math.round(S.vitals.glucose.history.reduce((a,b)=>a+b,0)/S.vitals.glucose.history.length)} mg/dL</b></span>
+        <span class="badge ${glcCls(S.vitals.glucose.value)}">Meta: 70–140</span>
+      </div>
+      <div class="chart-wrap"><canvas data-chart='${JSON.stringify({data:S.vitals.glucose.history,color:"#f59e0b",fill:true})}'></canvas></div>
+    </div>
+  </div>`:
+  `<div class="card" style="border-style:dashed;text-align:center;padding:32px;color:var(--muted)">
+    <div style="font-size:28px;margin-bottom:8px">⌚</div>
+    Conecte o smartwatch para ver gráficos detalhados de FC, pressão e SpO₂.
+    <br><button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="setView('patient');setTab('watch')">Conectar smartwatch</button>
+  </div>`}
+
+  <!-- Adesão medicamentosa detalhada -->
+  <div class="sec">adesão medicamentosa</div>
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">💊 Adesão por Medicamento — Hoje</div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        ${S.meds.map(m=>{
+          const done=m.times.filter(t=>m.taken[`${today}-${t}`]).length;
+          const pct=Math.round((done/m.times.length)*100);
+          const daysLeft=Math.floor(m.stock/m.times.length);
+          return`<div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+              <div style="display:flex;align-items:center;gap:8px">
+                <div style="width:9px;height:9px;border-radius:50%;background:${m.color}"></div>
+                <span style="font-size:13px;font-weight:600">${m.name}</span>
+                <span style="font-size:11px;color:var(--muted)">${m.dose}</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="font-family:var(--font-mono);font-size:12px;color:${pct===100?'var(--g1)':pct>=50?'var(--warn)':'var(--danger)'}">${done}/${m.times.length} doses</span>
+                <span class="badge ${daysLeft<=3?'b-danger':daysLeft<=7?'b-warn':'b-ok'}" style="font-size:9px">${daysLeft}d estoque</span>
+              </div>
+            </div>
+            <div class="prog-wrap" style="height:8px">
+              <div class="prog-bar" style="width:${pct}%;background:linear-gradient(90deg,${m.color},${m.color}bb)"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:10px;color:var(--muted)">
+              <span>Horários: ${m.times.join(' · ')}</span>
+              <span>${pct}%</span>
+            </div>
+          </div>`;}).join('')}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📅 Adesão — Últimos 7 dias</div>
+      <div style="display:flex;align-items:flex-end;gap:8px;height:100px;margin-bottom:8px">
+        ${adhWeek.map((v,i)=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+          <div style="font-size:9px;color:${v>=80?'var(--g1)':v>=60?'var(--warn)':'var(--danger)'};font-family:var(--font-mono)">${v}%</div>
+          <div style="width:100%;border-radius:4px 4px 0 0;background:${v>=80?'linear-gradient(180deg,var(--g1),var(--g2))':v>=60?'linear-gradient(180deg,var(--warn),#d97706)':'linear-gradient(180deg,var(--danger),#b91c1c)'};height:${v}%;min-height:4px"></div>
+        </div>`).join('')}
+      </div>
+      <div style="display:flex;gap:8px">
+        ${adhLabels.map(l=>`<div style="flex:1;text-align:center;font-size:9px;color:var(--muted)">${l}</div>`).join('')}
+      </div>
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">
+        <div style="font-size:12px;color:var(--muted)">Média semanal: <b style="color:var(--text)">${Math.round(adhWeek.reduce((a,b)=>a+b,0)/adhWeek.length)}%</b></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Correlações clínicas -->
+  <div class="sec">correlações clínicas</div>
+  <div class="card">
+    <div class="card-title">🔬 Análise de Correlação — Glicose × Adesão × Pressão</div>
+    <div style="display:flex;flex-direction:column;gap:0">
+      ${genInsights()}
+    </div>
+  </div>
+
+  </div>`;
+}
+
+/* helper — gera insights clínicos dinâmicos baseados nos dados */
+function genInsights(){
+  const g=S.vitals.glucose; const w=S.watch;
+  const gAvg=Math.round(g.history.reduce((a,b)=>a+b,0)/g.history.length);
+  const bpAvg=S.watchConnected?Math.round(w.bpHistory.reduce((a,b)=>a+b,0)/w.bpHistory.length):0;
+  const adh=medAdherence();
+  const sinv=S.meds.find(m=>m.name==='Sinvastatina');
+  const losa=S.meds.find(m=>m.name==='Losartana');
+  const items=[];
+
+  if(gAvg>140) items.push({dot:'var(--warn)',title:'Glicose acima da meta terapêutica',body:`Média de ${gAvg} mg/dL (meta: 70–140). ${adh<70?'Baixa adesão pode estar contribuindo.':'Considere ajuste na dose de Metformina ou revisão da dieta.'}`});
+  else items.push({dot:'var(--g1)',title:'Controle glicêmico adequado',body:`Média de ${gAvg} mg/dL dentro da faixa-alvo. Manter Metformina na dose atual.`});
+
+  if(S.watchConnected){
+    if(bpAvg>140) items.push({dot:'var(--warn)',title:'Pressão média elevada',body:`Média de ${bpAvg} mmHg. Losartana pode precisar de reforço ou troca para IECA.`});
+    else items.push({dot:'var(--g1)',title:'Pressão sob controle',body:`Média de ${bpAvg} mmHg. Losartana ${losa?.dose} demonstra eficácia. Manter esquema atual.`});
+
+    if(w.hrv<35) items.push({dot:'var(--warn)',title:'HRV baixo — risco cardiovascular',body:`HRV de ${w.hrv}ms sugere alta carga de estresse ou recuperação insuficiente. Considere avaliação cardiológica.`});
+    else items.push({dot:'var(--g1)',title:'HRV adequado',body:`HRV de ${w.hrv}ms indica boa variabilidade cardíaca. Sem necessidade de intervenção imediata.`});
+  }
+
+  if(sinv){
+    const dias=Math.floor(sinv.stock/sinv.times.length);
+    if(dias<=7) items.push({dot:'var(--danger)',title:`Estoque crítico: Sinvastatina`,body:`Apenas ${dias} dias restantes. Emitir nova prescrição antes da próxima consulta.`});
+  }
+
+  if(adh<70) items.push({dot:'var(--danger)',title:'Adesão medicamentosa crítica',body:`Apenas ${adh}% de adesão hoje. Risco de descompensação. Considere telemonitoramento ativo.`});
+  else if(adh<90) items.push({dot:'var(--warn)',title:'Adesão parcial ao tratamento',body:`${adh}% de adesão. Reforçar orientações na próxima consulta.`});
+
+  return items.map((item,i)=>`<div style="display:flex;gap:13px;padding:13px 0;border-bottom:${i<items.length-1?'1px solid var(--border)':'none'}">
+    <div style="width:8px;height:8px;border-radius:50%;background:${item.dot};margin-top:5px;flex-shrink:0"></div>
+    <div><div style="font-weight:600;font-size:13px;margin-bottom:3px">${item.title}</div>
+    <div style="font-size:12px;color:var(--muted);line-height:1.6">${item.body}</div></div>
+  </div>`).join('');
+}
+
+/* ── ALERTAS ────────────────────────────────────────────────── */
+function pageAlerts(){
+  const unread=S.alerts.filter(a=>!a.read).length;
+  return`<div class="flex-col">
+  <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+    <button class="btn btn-ghost btn-sm" onclick="VOICE.readAlerts()">📢 Ouvir alertas</button>
+    ${unread?`<button class="btn btn-ghost btn-sm" onclick="S.alerts.forEach(a=>a.read=true);render()">✓ Marcar todos como lidos (${unread})</button>`:''}
+    <button class="btn btn-ghost btn-sm" onclick="S.alerts=[];render()">🗑 Limpar histórico</button>
+  </div>
+  ${S.alerts.length===0
+    ?`<div class="card" style="text-align:center;color:var(--muted);padding:56px">
+        <div style="font-size:44px;margin-bottom:12px">✅</div>
+        <div style="font-size:14px;font-weight:500;margin-bottom:4px">Nenhum alerta ativo</div>
+        <div style="font-size:12px">Todos os sinais vitais estão dentro dos limites normais.</div>
+      </div>`
+    :S.alerts.map((a,i)=>`<div class="alert-item" style="border-color:${a.type==='danger'?'rgba(239,68,68,.3)':a.type==='warn'?'rgba(245,158,11,.2)':'var(--border)'};background:${a.type==='danger'?'rgba(239,68,68,.03)':a.type==='warn'?'rgba(245,158,11,.02)':'var(--surf)'}">
+      <div style="font-size:22px">${a.type==='danger'?'🚨':a.type==='warn'?'⚠️':'ℹ️'}</div>
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:13px">${a.title}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">${a.desc}</div>
+        <div style="font-size:10px;color:var(--muted2);margin-top:4px">${a.time}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+        <span class="badge ${a.type==='danger'?'b-danger':a.type==='warn'?'b-warn':'b-blue'}">${a.type==='danger'?'Crítico':a.type==='warn'?'Atenção':'Info'}</span>
+        ${!a.read
+          ?`<button class="btn btn-ghost btn-sm" onclick="S.alerts[${i}].read=true;renderBadges();render()">✓ Lido</button>`
+          :`<span style="font-size:10px;color:var(--muted)">✓ Lido</span>`}
+      </div>
+    </div>`).join('')}
+  </div>`;
+}
+
+/* ── PRESCRIÇÕES (médico) ───────────────────────────────────── */
+function pageRx(){
+  return`<div class="flex-col">
+  <div class="g2">
+    <!-- Anotações clínicas -->
+    <div class="card" style="grid-column:1/-1">
+      <div class="card-title">📋 Anotações e Prescrições Médicas</div>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:14px;font-size:12px;color:var(--muted)">
+        <span>👤 ${S.user}</span><span>•</span>
+        <span>Diabetes T2 + Hipertensão</span><span>•</span>
+        <span>Dr. Carlos Mendes · CRM 12345-SP</span><span>•</span>
+        <span>${S.now.toLocaleDateString('pt-BR')}</span>
+      </div>
+      <textarea id="rx-notes" rows="10" placeholder="Observações clínicas, ajustes de dose, novas prescrições, metas terapêuticas, encaminhamentos..." style="resize:vertical;line-height:1.8">${S.doctorRx}</textarea>
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="saveRx()">💾 Salvar Prescrição</button>
+        <button class="btn btn-ghost" onclick="toast('Relatório enviado ao paciente via app','ok')">📤 Enviar ao Paciente</button>
+        <button class="btn btn-ghost" onclick="VOICE.speak('Prescrição médica salva para o paciente ${S.user.split(' ')[0]}. Favor confirmar recebimento.')">📢 Narrar</button>
+        <button class="btn btn-ghost" onclick="toast('Relatório PDF gerado','info')">🖨 Imprimir Receituário</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Medicamentos prescritos com controle de dose -->
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div class="card-title" style="margin:0">💊 Medicamentos Prescritos</div>
+      <button class="btn btn-ghost btn-sm" onclick="addMedPrompt()">＋ Adicionar</button>
+    </div>
+    <table>
+      <thead><tr><th>Medicamento</th><th>Dose</th><th>Horários</th><th>Estoque</th><th>Adesão hoje</th><th>Status</th></tr></thead>
+      <tbody>
+        ${S.meds.map(m=>{
+          const today=S.now.toDateString();
+          const done=m.times.filter(t=>m.taken[`${today}-${t}`]).length;
+          const pct=Math.round((done/m.times.length)*100);
+          const days=Math.floor(m.stock/m.times.length);
+          return`<tr>
+            <td><div style="display:flex;align-items:center;gap:8px"><div style="width:9px;height:9px;border-radius:50%;background:${m.color}"></div><b>${m.name}</b></div></td>
+            <td style="font-family:var(--font-mono);font-size:12px">${m.dose}</td>
+            <td style="font-size:12px;color:var(--muted)">${m.times.join(' · ')}</td>
+            <td><span class="badge ${days<=3?'b-danger':days<=7?'b-warn':'b-ok'}">${days}d</span></td>
+            <td>
+              <div style="display:flex;align-items:center;gap:7px">
+                <div class="prog-wrap" style="width:60px"><div class="prog-bar" style="width:${pct}%;background:${m.color}"></div></div>
+                <span style="font-size:11px;font-family:var(--font-mono)">${done}/${m.times.length}</span>
+              </div>
+            </td>
+            <td><span class="badge b-blue">Ativo</span></td>
+          </tr>`;}).join('')}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Insights automáticos -->
+  <div class="card">
+    <div class="card-title">🔬 Insights Clínicos Gerados Automaticamente</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Baseado nos dados coletados nas últimas 24h</div>
+    <div style="display:flex;flex-direction:column;gap:0">${genInsights()}</div>
+  </div>
+
+  <!-- Metas terapêuticas -->
+  <div class="card">
+    <div class="card-title">🎯 Metas Terapêuticas</div>
+    <table>
+      <thead><tr><th>Sinal Vital</th><th>Meta</th><th>Atual</th><th>Atingindo?</th></tr></thead>
+      <tbody>
+        <tr><td>🩸 Glicemia em jejum</td><td>&lt; 126 mg/dL</td><td><b>${S.vitals.glucose.value} mg/dL</b></td><td><span class="badge ${S.vitals.glucose.value<126?'b-ok':'b-warn'}">${S.vitals.glucose.value<126?'✓ Sim':'✗ Não'}</span></td></tr>
+        <tr><td>🩺 Pressão sistólica</td><td>&lt; 130 mmHg</td><td><b>${S.watchConnected?S.watch.bp_sys+'mmHg':'—'}</b></td><td><span class="badge ${!S.watchConnected?'b-blue':S.watch.bp_sys<130?'b-ok':'b-warn'}">${!S.watchConnected?'Sem dados':S.watch.bp_sys<130?'✓ Sim':'✗ Não'}</span></td></tr>
+        <tr><td>❤️ Frequência cardíaca</td><td>60–100 bpm</td><td><b>${S.watchConnected?S.watch.hr+' bpm':'—'}</b></td><td><span class="badge ${!S.watchConnected?'b-blue':vStatus('hr',S.watch.hr)==='ok'?'b-ok':'b-warn'}">${!S.watchConnected?'Sem dados':vStatus('hr',S.watch.hr)==='ok'?'✓ Sim':'✗ Não'}</span></td></tr>
+        <tr><td>💊 Adesão medicamentosa</td><td>≥ 90%</td><td><b>${medAdherence()}%</b></td><td><span class="badge ${medAdherence()>=90?'b-ok':medAdherence()>=70?'b-warn':'b-danger'}">${medAdherence()>=90?'✓ Sim':medAdherence()>=70?'Parcial':'✗ Não'}</span></td></tr>
+        <tr><td>🫁 Saturação O₂</td><td>≥ 96%</td><td><b>${S.watchConnected?S.watch.spo2+'%':'—'}</b></td><td><span class="badge ${!S.watchConnected?'b-blue':S.watch.spo2>=96?'b-ok':'b-warn'}">${!S.watchConnected?'Sem dados':S.watch.spo2>=96?'✓ Sim':'✗ Não'}</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  </div>`;
+}
+
+/* ── EMERGENCY ──────────────────────────────────────────────────── */
+function pageEmergency(){
+  return`<div class="flex-col">
+  <div class="card" style="border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.04)">
+    <div class="card-title" style="color:var(--danger)">🆘 Protocolo de Emergência</div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Em caso de emergência médica, use os botões abaixo para acionar ajuda rapidamente.</p>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button class="emergency-btn" onclick="callEmergency('SAMU','192')">🚑 Chamar SAMU — 192</button>
+      <button class="emergency-btn" style="background:linear-gradient(135deg,#1d4ed8,#3b82f6)" onclick="callEmergency('Bombeiros','193')">🚒 Bombeiros — 193</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">📞 Contatos de Emergência</div>
+    ${S.emergencyContacts.map(c=>`<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)">
+      <div style="width:40px;height:40px;border-radius:50%;background:rgba(0,229,184,.1);border:1px solid rgba(0,229,184,.2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">
+        ${c.role==='Emergência'?'🆘':c.role==='Médico'?'👨‍⚕️':'👤'}
+      </div>
+      <div style="flex:1"><div style="font-weight:600;font-size:13px">${c.name}</div><div style="font-size:11px;color:var(--muted)">${c.role} · ${c.phone}</div></div>
+      <button class="btn btn-ghost btn-sm" onclick="VOICE.speak('Ligando para ${c.name}')">📞 Ligar</button>
+    </div>`).join('')}
+    <button class="btn btn-ghost" style="margin-top:12px;width:100%;justify-content:center" onclick="addEmergencyContact()">＋ Adicionar contato</button>
+  </div>
+  <div class="card">
+    <div class="card-title">🏥 Informações Médicas de Emergência</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px">
+      <div><div style="color:var(--muted);font-size:10px;text-transform:uppercase;margin-bottom:3px">Paciente</div><div>${S.user}</div></div>
+      <div><div style="color:var(--muted);font-size:10px;text-transform:uppercase;margin-bottom:3px">Condição</div><div>Diabetes T2 + HAS</div></div>
+      <div><div style="color:var(--muted);font-size:10px;text-transform:uppercase;margin-bottom:3px">Alergias</div><div>Nenhuma conhecida</div></div>
+      <div><div style="color:var(--muted);font-size:10px;text-transform:uppercase;margin-bottom:3px">Tipo Sanguíneo</div><div>A+</div></div>
+      <div style="grid-column:1/-1"><div style="color:var(--muted);font-size:10px;text-transform:uppercase;margin-bottom:4px">Medicamentos em uso</div><div style="font-size:12px">${S.meds.map(m=>`${m.name} ${m.dose}`).join(' · ')}</div></div>
+    </div>
+  </div>
+  </div>`;
+}
+
+/* ════════════════════════════════════════════════════════════
+   ACTIONS
+════════════════════════════════════════════════════════════ */
+function takeMed(id,time){
+  const today=S.now.toDateString();
+  const med=S.meds.find(m=>m.id===id);
+  if(!med)return;
+  med.taken[`${today}-${time}`]=true;
+  med.stock=Math.max(0,med.stock-1);
+  playAlarmBeep('med');
+  VOICE.speak(`${med.name} ${med.dose} registrado como tomado!`);
+  toast(`💊 ${med.name} marcado como tomado ✓`,'ok');
+  render();
+}
+function addGlucose(){
+  const val=parseFloat(document.getElementById('inp-gluc')?.value);
+  if(isNaN(val)||val<20||val>700){toast('Valor inválido','warn');return;}
+  S.vitals.glucose.history=[...S.vitals.glucose.history.slice(-9),val];
+  S.vitals.glucose.value=val;
+  const st=vStatus('glucose',val);
+  if(st==='danger'){playAlarmBeep('danger');VOICE.alertVital('Glicose',val,'miligramas por decilitro','danger');addAlert(`Glicose crítica: ${val} mg/dL`,'Valor acima de 200 mg/dL.','danger');toast(`🚨 Glicose CRÍTICA: ${val} mg/dL`,'danger');}
+  else if(st==='warn'){playAlarmBeep('warn');toast(`⚠️ Glicose elevada: ${val} mg/dL`,'warn');addAlert(`Glicose elevada: ${val} mg/dL`,'Acima de 140 mg/dL.','warn');}
+  else{VOICE.speak(`Glicose registrada: ${val} miligramas por decilitro. Normal.`);toast('🩸 Glicose registrada','ok');}
+  render();
+}
+function addSymptom(){
+  const desc=document.getElementById('symp-desc')?.value?.trim();
+  if(!desc){toast('Descreva o sintoma','warn');return;}
+  const sev=document.getElementById('symp-sev')?.value||'1';
+  const time=document.getElementById('symp-time')?.value||nowStr();
+  const body=document.getElementById('symp-body')?.value||'';
+  S.symptoms.unshift({id:Date.now(),desc,severity:sev,time,body,date:S.now.toLocaleDateString('pt-BR')});
+  if(parseInt(sev)>=8){addAlert(`Sintoma grave: ${desc}`,`Intensidade ${sev}/10.`,'danger');}
+  VOICE.speak(`Sintoma registrado: ${desc}, intensidade ${sev} de dez.`);
+  toast('📝 Sintoma registrado','ok');render();
+}
+function setCups(n){S.waterCups=Math.max(0,Math.min(8,n));renderBars();}
+function setMood(m){S.mood=m;toast(`Humor registrado: ${m}`,'info');render();}
+function addAppointment(){
+  const t=document.getElementById('appt-title')?.value?.trim();
+  if(!t){toast('Informe a especialidade','warn');return;}
+  S.appointments.push({id:Date.now(),title:t,doctor:document.getElementById('appt-doc')?.value||'—',date:document.getElementById('appt-day')?.value||'—',month:document.getElementById('appt-month')?.value||'—',time:document.getElementById('appt-time')?.value||'—',local:document.getElementById('appt-local')?.value||'—'});
+  toast('📅 Consulta agendada','ok');render();
+}
+function removeAppointment(id){S.appointments=S.appointments.filter(a=>a.id!==id);render();}
+function callEmergency(name,num){
+  playAlarmBeep('danger');
+  VOICE.speak(`Acionando ${name}! Número ${num.split('').join(' ')}.`);
+  toast(`🚨 Acionando ${name} — ${num}`,'danger');
+}
+function addEmergencyContact(){
+  const name=prompt('Nome do contato:');if(!name)return;
+  const phone=prompt('Telefone:');if(!phone)return;
+  const role=prompt('Função (Familiar, Médico, etc.):');
+  S.emergencyContacts.push({name,phone,role:role||'Contato'});
+  toast('Contato adicionado','ok');render();
+}
+function saveRx(){S.doctorRx=document.getElementById('rx-notes')?.value||'';toast('✓ Prescrição salva','ok');}
+function addMedPrompt(){
+  const name=prompt('Nome do medicamento:'); if(!name)return;
+  const dose=prompt('Dose (ex: 500mg):'); if(!dose)return;
+  const times=prompt('Horários separados por vírgula (ex: 08:00,20:00):'); if(!times)return;
+  const colors=['#00e5b8','#0ea5e9','#a78bfa','#f59e0b','#f472b6','#22c55e'];
+  S.meds.push({id:Date.now(),name,dose,times:times.split(',').map(t=>t.trim()),taken:{},stock:30,color:colors[S.meds.length%colors.length]});
+  toast(`💊 ${name} adicionado`,'ok');render();
+}
+
+
+/* ── Watch ─────────────────────────────────────────────────────── */
+function connectWatch(){
+  S.watchConnecting=true;renderBars();renderMain();
+  setTimeout(()=>{const e=document.getElementById('cs1');const i=document.getElementById('cs1i');if(e){i.textContent='✅';e.style.opacity='1';}const e2=document.getElementById('cs2');if(e2)e2.style.opacity='1';},1200);
+  setTimeout(()=>{const e=document.getElementById('cs2');const i=document.getElementById('cs2i');if(e&&i){i.textContent='✅';}const e3=document.getElementById('cs3');if(e3)e3.style.opacity='1';},2400);
+  setTimeout(()=>{const i=document.getElementById('cs3i');if(i)i.textContent='✅';},3400);
+  setTimeout(()=>{
+    S.watchConnecting=false;S.watchConnected=true;S.watch.lastSync=Date.now();
+    playAlarmBeep('med');
+    VOICE.speak('Apple Watch conectado com sucesso! Monitoramento contínuo ativado.');
+    addAlert('Smartwatch conectado','Monitoramento contínuo iniciado.','info');
+    toast('⌚ Apple Watch conectado!','ok');render();
+  },4200);
+}
+function disconnectWatch(){
+  S.watchConnected=false;toast('⌚ Smartwatch desconectado','warn');renderBars();render();
+}
+
+/* ── Realtime watch simulation ──────────────────────────────────── */
+function tickWatch(){
+  if(!S.watchConnected)return;
+  const w=S.watch;
+  w.hr   = clamp(w.hr   +rnd(-1.5,1.5)|0, 50, 120);
+  w.spo2 = clamp(+(w.spo2+rnd(-.2,.2)).toFixed(1), 93, 100);
+  w.hrv  = clamp(w.hrv  +(rnd(-1.5,1.5)|0), 20, 80);
+  w.bp_sys=clamp(w.bp_sys+(rnd(-1.5,1.5)|0), 100, 185);
+  w.temp = clamp(+(w.temp+rnd(-.04,.04)).toFixed(1), 35.5, 39.5);
+  w.steps+=(Math.random()*6)|0;
+  w.hrHistory  =[...w.hrHistory.slice(-59),  w.hr];
+  w.spo2History=[...w.spo2History.slice(-59), w.spo2];
+  w.bpHistory  =[...w.bpHistory.slice(-59),  w.bp_sys];
+  w.lastSync=Date.now();
+
+  // Spot-update DOM
+  setText('wf-hr',w.hr);setText('wf-hr2',w.hr);
+  setText('wf-spo2',w.spo2+'%');setText('wf-spo2b',w.spo2+'%');
+  setText('wf-hrv2',w.hrv+'ms');setText('wf-steps',w.steps.toLocaleString('pt-BR'));
+  setText('sync-lbl',fmtSync());setText('sync2',fmtSync());
+  setText('hrv-val',w.hrv);
+
+  // Threshold alerts with voice
+  if(w.spo2<94&&Math.random()<.08){
+    playAlarmBeep('warn');VOICE.alertVital('SpO₂',w.spo2,'por cento','warn');
+    addAlert('SpO₂ baixa',`Saturação ${w.spo2}%.`,'warn');
+  }
+  if(w.bp_sys>165&&Math.random()<.05){
+    playAlarmBeep('danger');VOICE.alertVital('Pressão arterial',w.bp_sys,'milímetros de mercúrio','danger');
+    addAlert('Pressão crítica',`Sistólica ${w.bp_sys} mmHg.`,'danger');
+  }
+  if(w.hr>115&&Math.random()<.06){
+    toast(`❤️ FC elevada: ${w.hr} bpm`,'warn');
+  }
+
+  // Redraw charts
+  document.querySelectorAll('[data-chart]').forEach(c=>{
+    try{
+      const cfg=JSON.parse(c.dataset.chart);
+      let d=cfg.data;
+      if(cfg.color==='#ef4444')d=w.hrHistory;
+      else if(cfg.color==='#00e5b8')d=w.spo2History;
+      else if(cfg.color==='#0ea5e9')d=w.bpHistory;
+      drawChart(c,d,cfg.color,cfg.fill!==false);
+    }catch(e){}
+  });
+}
+
+/* ── Clock & med alarms ─────────────────────────────────────────── */
+function tickClock(){
+  S.now=new Date();
+  const h=String(S.now.getHours()).padStart(2,'0');
+  const m=String(S.now.getMinutes()).padStart(2,'0');
+  const s=String(S.now.getSeconds()).padStart(2,'0');
+  setText('clock',`${h}:${m}:${s}`);
+  document.querySelectorAll('.watch-time').forEach(e=>e.textContent=`${h}:${m}`);
+
+  // Med reminders — every minute
+  if(s==='00'){
+    const t=`${h}:${m}`;
+    const today=S.now.toDateString();
+    S.meds.forEach(med=>{
+      med.times.forEach(mt=>{
+        const key=`${today}-${mt}-alerted`;
+        if(mt===t&&!med.taken[`${today}-${mt}`]&&!S.medAlertedToday[key]){
+          S.medAlertedToday[key]=true;
+          playAlarmBeep('med');
+          VOICE.alertMed(med.name,med.dose,mt);
+          addAlert(`Medicamento: ${med.name}`,`Hora de tomar ${med.dose} às ${mt}.`,'info');
+          toast(`⏰ ${med.name} ${med.dose} — hora de tomar!`,'warn');
+        }
+      });
+    });
+    // Water reminder every 2h
+    if(m==='00'&&[8,10,12,14,16,18,20,22].includes(parseInt(h))&&S.waterCups<8){
+      VOICE.speak('Lembrete: tome um copo de água. Você está com boa hidratação hoje.');
+    }
+  }
+}
+
+/* ── Canvas chart ───────────────────────────────────────────────── */
+function drawChart(canvas,data,color,fill=true){
+  if(!data||data.length<2)return;
+  const dpr=window.devicePixelRatio||1;
+  const w=canvas.offsetWidth||canvas.parentElement?.offsetWidth||300;
+  const h=canvas.offsetHeight||130;
+  canvas.width=w*dpr;canvas.height=h*dpr;
+  const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
+  const p={t:6,r:6,b:18,l:32};
+  const cw=w-p.l-p.r,ch=h-p.t-p.b;
+  const mn=Math.min(...data)-1,mx=Math.max(...data)+1,rng=mx-mn||1;
+  ctx.strokeStyle='rgba(128,128,128,.06)';ctx.lineWidth=1;
+  for(let i=0;i<=3;i++){const y=p.t+ch*(1-i/3);ctx.beginPath();ctx.moveTo(p.l,y);ctx.lineTo(p.l+cw,y);ctx.stroke();ctx.fillStyle='rgba(128,128,128,.3)';ctx.font=`9px DM Mono`;ctx.textAlign='right';ctx.fillText((mn+rng*(i/3)).toFixed(0),p.l-3,y+3);}
+  const pts=data.map((v,i)=>({x:p.l+(i/(data.length-1))*cw,y:p.t+ch*(1-((v-mn)/rng))}));
+  if(fill){const g=ctx.createLinearGradient(0,p.t,0,p.t+ch);g.addColorStop(0,color+'55');g.addColorStop(1,color+'00');ctx.beginPath();ctx.moveTo(pts[0].x,p.t+ch);pts.forEach(pt=>ctx.lineTo(pt.x,pt.y));ctx.lineTo(pts[pts.length-1].x,p.t+ch);ctx.closePath();ctx.fillStyle=g;ctx.fill();}
+  ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);
+  for(let i=1;i<pts.length;i++){const mx=(pts[i-1].x+pts[i].x)/2;ctx.bezierCurveTo(mx,pts[i-1].y,mx,pts[i].y,pts[i].x,pts[i].y);}
+  ctx.strokeStyle=color;ctx.lineWidth=2;ctx.lineJoin='round';ctx.stroke();
+  const lp=pts[pts.length-1];ctx.beginPath();ctx.arc(lp.x,lp.y,4,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();ctx.beginPath();ctx.arc(lp.x,lp.y,7,0,Math.PI*2);ctx.fillStyle=color+'33';ctx.fill();
+}
+
+/* ── Bootstrap ──────────────────────────────────────────────────── */
+render();
+setInterval(tickClock,1000);
+setInterval(tickWatch,2000);
+
+// Greet after 800ms (let page load first)
+setTimeout(()=>{ VOICE.greet(); }, 800);
+</script>
+</body>
+</html>
